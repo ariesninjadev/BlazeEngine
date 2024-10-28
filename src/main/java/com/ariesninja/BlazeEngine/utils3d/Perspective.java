@@ -3,14 +3,17 @@ package com.ariesninja.BlazeEngine.utils3d;
 import com.ariesninja.BlazeEngine.Instance;
 import com.ariesninja.BlazeEngine.Camera;
 import com.ariesninja.BlazeEngine.Model;
+import com.ariesninja.BlazeEngine.Pose3D;
 import com.ariesninja.BlazeEngine.utils2d.Coordinate;
 import com.ariesninja.BlazeEngine.utils2d.Line;
 
+import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class Perspective {
 
-    private static Coordinate poly3Dto2D(Coordinate3D p, Camera c) {
+    private static Coordinate poly3Dto2D(Coordinate3D p, Camera c, int screenWidth, int screenHeight) {
         // Translate the point based on the camera position
         double translatedX = p.x - c.getPose().getPosition().getX();
         double translatedY = p.y - c.getPose().getPosition().getY();
@@ -32,65 +35,101 @@ public class Perspective {
 
         // Project the 3D point to 2D using perspective projection
         double fov = Math.toRadians(c.getFov());
-        double aspectRatio = (double) 500 / (double) 400;
+        double aspectRatio = (double) screenWidth / (double) screenHeight;
 
         // Calculate the scale factor based on FOV and distance
         double scale = Math.tan(fov / 2) * zRotatedFinal;
 
         // Calculate the projected coordinates in normalized device coordinates (NDC)
-        double projectedX = (xRotated / scale) * aspectRatio; // Apply aspect ratio
+        double projectedX = (xRotated / scale) / aspectRatio; // Apply aspect ratio
         double projectedY = (yRotated / scale); // Y remains unchanged
 
         // Map NDC to screen coordinates
-        double screenX = (projectedX + 1) * (500 / 2); // Transform X from [-1, 1] to [0, screenWidth]
-        double screenY = (1 - projectedY) * (400 / 2); // Transform Y from [-1, 1] to [0, screenHeight]
+        double screenX = (projectedX + 1) * ((double) screenWidth / 2); // Transform X from [-1, 1] to [0, screenWidth]
+        double screenY = (1 - projectedY) * ((double) screenHeight / 2); // Transform Y from [-1, 1] to [0, screenHeight]
 
         return new Coordinate(screenX, screenY);
     }
 
+    public static ArrayList<Polygon> filledSurfaces(Instance i, Camera c) {
+        int sw = c.getScreenWidth();
+        int sh = c.getScreenHeight();
+        ArrayList<Polygon> polygons = new ArrayList<>();
+
+        Pose3D pose = i.getPose();
+        double px = pose.getPosition().getX();
+        double py = pose.getPosition().getY();
+        double pz = pose.getPosition().getZ();
+
+        for (Surface3D surface : i.getModel().getSurfaces()) {
+            Polygon polygon = new Polygon();
+            for (Coordinate3D vertex : surface.getVertices()) {
+                // Adjust vertex coordinates by the instance's pose
+                Coordinate3D adjustedVertex = new Coordinate3D(vertex.x + px, vertex.y + py, vertex.z + pz);
+                Coordinate projected = poly3Dto2D(adjustedVertex, c, sw, sh);
+                polygon.addPoint((int) projected.x, (int) projected.y);
+            }
+            polygons.add(polygon);
+        }
+        return polygons;
+    }
 
     public static ArrayList<Line> calculate(Instance i, Camera c) {
-        ArrayList<Line> lines = new ArrayList<>();
-        if (i.getModel().getClass() == Model.CUBE.class) {
-            // Use the cube's vertices to calculate the lines
 
-            // Center of the cube
+        int sw = c.getScreenWidth();
+        int sh = c.getScreenHeight();
+
+        ArrayList<Line> lines = new ArrayList<>();
+        if (i.getModel().isDimensional()) {
+            // Bottom left front corner of the rectangular prism
             double x1 = i.getPose().getPosition().getX();
             double y1 = i.getPose().getPosition().getY();
             double z1 = i.getPose().getPosition().getZ();
-            double size = ((Model.CUBE) i.getModel()).getSize();
 
-            // Half the size to calculate offsets from the center
-            double halfSize = size / 2.0;
+            // Get the dimensions of the rectangular prism
+            double width = i.getModel().getWidth();
+            double height = i.getModel().getHeight();
+            double length = i.getModel().getLength();
 
-            // Calculate the 8 vertices of the cube
+            // Calculate the 8 vertices of the rectangular prism
             Coordinate3D[] vertices = new Coordinate3D[8];
-            vertices[0] = new Coordinate3D(x1 - halfSize, y1 - halfSize, z1 - halfSize); // Front bottom left
-            vertices[1] = new Coordinate3D(x1 + halfSize, y1 - halfSize, z1 - halfSize); // Front bottom right
-            vertices[2] = new Coordinate3D(x1 + halfSize, y1 + halfSize, z1 - halfSize); // Back bottom right
-            vertices[3] = new Coordinate3D(x1 - halfSize, y1 + halfSize, z1 - halfSize); // Back bottom left
-            vertices[4] = new Coordinate3D(x1 - halfSize, y1 - halfSize, z1 + halfSize); // Front top left
-            vertices[5] = new Coordinate3D(x1 + halfSize, y1 - halfSize, z1 + halfSize); // Front top right
-            vertices[6] = new Coordinate3D(x1 + halfSize, y1 + halfSize, z1 + halfSize); // Back top right
-            vertices[7] = new Coordinate3D(x1 - halfSize, y1 + halfSize, z1 + halfSize); // Back top left
+            vertices[0] = new Coordinate3D(x1, y1, z1); // Front bottom left
+            vertices[1] = new Coordinate3D(x1 + width, y1, z1); // Front bottom right
+            vertices[2] = new Coordinate3D(x1 + width, y1 + height, z1); // Back bottom right
+            vertices[3] = new Coordinate3D(x1, y1 + height, z1); // Back bottom left
+            vertices[4] = new Coordinate3D(x1, y1, z1 + length); // Front top left
+            vertices[5] = new Coordinate3D(x1 + width, y1, z1 + length); // Front top right
+            vertices[6] = new Coordinate3D(x1 + width, y1 + height, z1 + length); // Back top right
+            vertices[7] = new Coordinate3D(x1, y1 + height, z1 + length); // Back top left
 
-            // Calculate the lines of the cube
-            lines.add(new Line(poly3Dto2D(vertices[0], c), poly3Dto2D(vertices[1], c))); // Front bottom
-            System.out.println(poly3Dto2D(vertices[0], c).x + " " + poly3Dto2D(vertices[0], c).y);
-            lines.add(new Line(poly3Dto2D(vertices[1], c), poly3Dto2D(vertices[2], c)));
-            lines.add(new Line(poly3Dto2D(vertices[2], c), poly3Dto2D(vertices[3], c)));
-            lines.add(new Line(poly3Dto2D(vertices[3], c), poly3Dto2D(vertices[0], c)));
+            // Connect the vertices to form the rectangular prism
+            lines.add(new Line(poly3Dto2D(vertices[0], c, sw, sh), poly3Dto2D(vertices[1], c, sw, sh)));
+            lines.add(new Line(poly3Dto2D(vertices[1], c, sw, sh), poly3Dto2D(vertices[2], c, sw, sh)));
+            lines.add(new Line(poly3Dto2D(vertices[2], c, sw, sh), poly3Dto2D(vertices[3], c, sw, sh)));
+            lines.add(new Line(poly3Dto2D(vertices[3], c, sw, sh), poly3Dto2D(vertices[0], c, sw, sh)));
 
-            lines.add(new Line(poly3Dto2D(vertices[4], c), poly3Dto2D(vertices[5], c))); // Back bottom
-            lines.add(new Line(poly3Dto2D(vertices[5], c), poly3Dto2D(vertices[6], c)));
-            lines.add(new Line(poly3Dto2D(vertices[6], c), poly3Dto2D(vertices[7], c)));
-            lines.add(new Line(poly3Dto2D(vertices[7], c), poly3Dto2D(vertices[4], c)));
+            lines.add(new Line(poly3Dto2D(vertices[4], c, sw, sh), poly3Dto2D(vertices[5], c, sw, sh)));
+            lines.add(new Line(poly3Dto2D(vertices[5], c, sw, sh), poly3Dto2D(vertices[6], c, sw, sh)));
+            lines.add(new Line(poly3Dto2D(vertices[6], c, sw, sh), poly3Dto2D(vertices[7], c, sw, sh)));
+            lines.add(new Line(poly3Dto2D(vertices[7], c, sw, sh), poly3Dto2D(vertices[4], c, sw, sh)));
 
-            lines.add(new Line(poly3Dto2D(vertices[0], c), poly3Dto2D(vertices[4], c))); // Front to back
-            lines.add(new Line(poly3Dto2D(vertices[1], c), poly3Dto2D(vertices[5], c)));
-            lines.add(new Line(poly3Dto2D(vertices[2], c), poly3Dto2D(vertices[6], c)));
-            lines.add(new Line(poly3Dto2D(vertices[3], c), poly3Dto2D(vertices[7], c)));
+            lines.add(new Line(poly3Dto2D(vertices[0], c, sw, sh), poly3Dto2D(vertices[4], c, sw, sh)));
+            lines.add(new Line(poly3Dto2D(vertices[1], c, sw, sh), poly3Dto2D(vertices[5], c, sw, sh)));
+            lines.add(new Line(poly3Dto2D(vertices[2], c, sw, sh), poly3Dto2D(vertices[6], c, sw, sh)));
+            lines.add(new Line(poly3Dto2D(vertices[3], c, sw, sh), poly3Dto2D(vertices[7], c, sw, sh)));
+        } else {
+            // Polygon Builder shape - arraylist of lines
+            ArrayList<Line3D> shape = ((Model.POLYGON_BUILDER) i.getModel()).getLines();
+            double px = i.getPose().getPosition().getX();
+            double py = i.getPose().getPosition().getY();
+            double pz = i.getPose().getPosition().getZ();
+            for (Line3D l : shape) {
+                Coordinate3D adjustedStart = new Coordinate3D(l.start.x + px, l.start.y + py, l.start.z + pz);
+                Coordinate3D adjustedEnd = new Coordinate3D(l.end.x + px, l.end.y + py, l.end.z + pz);
+                lines.add(new Line(poly3Dto2D(adjustedStart, c, sw, sh), poly3Dto2D(adjustedEnd, c, sw, sh)));
+            }
         }
+
         return lines;
     }
 

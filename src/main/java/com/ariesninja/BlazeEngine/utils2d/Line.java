@@ -111,6 +111,10 @@ public class Line {
         return distance(c) == 0;
     }
 
+    public boolean isPointOnLine(Coordinate c, double tolerance) {
+        return distance(c) < tolerance;
+    }
+
     public boolean isPointOnLine(Line l) {
         return distance(l) == 0;
     }

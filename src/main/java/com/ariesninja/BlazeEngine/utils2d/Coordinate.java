@@ -10,6 +10,10 @@ public class Coordinate {
         this.y = y;
     }
 
+    public boolean isCloseTo(Coordinate other, double tolerance) {
+        return Math.abs(this.x - other.x) < tolerance && Math.abs(this.y - other.y) < tolerance;
+    }
+
     public Coordinate() {
         this.x = 0;
         this.y = 0;

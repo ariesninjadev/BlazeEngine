@@ -143,4 +143,7 @@ public class Coordinate3D {
         return new Coordinate3D(x, y, z);
     }
 
+    public Coordinate3D subtract(Coordinate3D center) {
+        return new Coordinate3D(x - center.x, y - center.y, z - center.z);
+    }
 }

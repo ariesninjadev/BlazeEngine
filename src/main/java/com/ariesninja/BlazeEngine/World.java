@@ -1,5 +1,6 @@
 package com.ariesninja.BlazeEngine;
 
+import java.awt.*;
 import java.util.ArrayList;
 
 public class World {
@@ -16,6 +17,12 @@ public class World {
 
     public Instance place(Model m, Pose3D p) {
         Instance i = new Instance(m, p);
+        models.add(i);
+        return i;
+    }
+
+    public Instance place(Model m, Pose3D p, Color c) {
+        Instance i = new Instance(m, p, c);
         models.add(i);
         return i;
     }

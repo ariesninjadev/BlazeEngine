@@ -9,6 +9,9 @@ public class Camera {
     public double far;
     public World world;
 
+    private int screenwidth;
+    private int screenheight;
+
     public Camera(World w, Pose3D p, double fov, double aspect, double near, double far) {
         this.pose = p; // The camera's position and rotation
         this.fov = fov; // The field of view of the camera in degrees
@@ -16,6 +19,19 @@ public class Camera {
         this.near = near; // The near clipping plane of the camera
         this.far = far; // The far clipping plane of the camera
         this.world = w; // The world that the camera is in
+    }
+
+    public void bind (int width, int height) {
+        this.screenwidth = width;
+        this.screenheight = height;
+    }
+
+    public int getScreenWidth() {
+        return screenwidth;
+    }
+
+    public int getScreenHeight() {
+        return screenheight;
     }
 
     public Pose3D getPose() {
