@@ -3,6 +3,7 @@ package com.ariesninja.BlazeEngine;
 import com.ariesninja.BlazeEngine.utils2d.Line;
 import com.ariesninja.BlazeEngine.gui.GraphicalDisplay;
 import com.ariesninja.BlazeEngine.utils3d.Perspective;
+import com.ariesninja.BlazeEngine.utils3d.PolygonWithDepth;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -15,8 +16,8 @@ import java.util.Map.Entry;
 
 public class Client {
 
-    int width = 1920;
-    int height = 1080;
+    int width = 500;
+    int height = 400;
 
     private GraphicalDisplay w;
 
@@ -45,35 +46,42 @@ public class Client {
         return lines;
     }
 
-    private double averageDepth(ArrayList<Polygon> polygons) {
+    private double averageDepth(PolygonWithDepth polygonWithDepth) {
         double totalDepth = 0;
         int count = 0;
-        for (Polygon p : polygons) {
-            for (int i = 0; i < p.npoints; i++) {
-                totalDepth += p.ypoints[i]; // Assuming ypoints represents depth
-                count++;
-            }
+        double[] depthArray = polygonWithDepth.getDepths();
+        for (double depth : depthArray) {
+            totalDepth += depth;
+            count++;
         }
         return totalDepth / count;
     }
 
-    public List<Entry<ArrayList<Polygon>, Color>> generateSurfaces() {
-        HashMap<ArrayList<Polygon>, Color> polygons = new HashMap<>();
+    public List<Entry<PolygonWithDepth, Color>> generateSurfaces() {
+        HashMap<PolygonWithDepth, Color> polygons = new HashMap<>();
         for (Instance i : world.getModels()) {
             ArrayList<Polygon> instancePolygons = Perspective.filledSurfaces(i, camera);
-            polygons.put(instancePolygons, i.getColor());
+            double[] depths = Perspective.calculateDepths(i, camera);
+            PolygonWithDepth polygonWithDepth = new PolygonWithDepth(instancePolygons, depths);
+            polygons.put(polygonWithDepth, i.getColor());
         }
 
         // Create a list from the map entries
-        List<Entry<ArrayList<Polygon>, Color>> polygonList = new ArrayList<>(polygons.entrySet());
+        List<Entry<PolygonWithDepth, Color>> polygonList = new ArrayList<>(polygons.entrySet());
 
-        // Sort the list based on the average depth of the polygons
-        Collections.sort(polygonList, new Comparator<Entry<ArrayList<Polygon>, Color>>() {
+        // Sort the list based on the depth of each polygon
+        Collections.sort(polygonList, new Comparator<Entry<PolygonWithDepth, Color>>() {
             @Override
-            public int compare(Entry<ArrayList<Polygon>, Color> o1, Entry<ArrayList<Polygon>, Color> o2) {
-                double depth1 = averageDepth(o1.getKey());
-                double depth2 = averageDepth(o2.getKey());
-                return Double.compare(depth2, depth1); // Sort in descending order
+            public int compare(Entry<PolygonWithDepth, Color> o1, Entry<PolygonWithDepth, Color> o2) {
+                double[] depths1 = o1.getKey().getDepths();
+                double[] depths2 = o2.getKey().getDepths();
+                for (int i = 0; i < depths1.length && i < depths2.length; i++) {
+                    int comparison = Double.compare(depths2[i], depths1[i]); // Sort in descending order
+                    if (comparison != 0) {
+                        return comparison;
+                    }
+                }
+                return 0;
             }
         });
 

@@ -134,4 +134,94 @@ public class Perspective {
     }
 
 
+    public static double[] calculateDepths(Instance i, Camera camera) {
+        double[] depths = new double[i.getModel().getSurfaces().size()];
+        Pose3D pose = i.getPose();
+        double px = pose.getPosition().getX();
+        double py = pose.getPosition().getY();
+        double pz = pose.getPosition().getZ();
+
+        double cameraX = camera.getPose().getPosition().getX();
+        double cameraY = camera.getPose().getPosition().getY();
+        double cameraZ = camera.getPose().getPosition().getZ();
+
+        for (int j = 0; j < i.getModel().getSurfaces().size(); j++) {
+            Surface3D surface = i.getModel().getSurfaces().get(j);
+            double centroidX = 0;
+            double centroidY = 0;
+            double centroidZ = 0;
+            int vertexCount = surface.getVertices().size();
+
+            for (Coordinate3D vertex : surface.getVertices()) {
+                // Adjust vertex coordinates by the instance's pose
+                Coordinate3D adjustedVertex = new Coordinate3D(vertex.x + px, vertex.y + py, vertex.z + pz);
+                centroidX += adjustedVertex.x;
+                centroidY += adjustedVertex.y;
+                centroidZ += adjustedVertex.z;
+            }
+
+            // Calculate the centroid
+            centroidX /= vertexCount;
+            centroidY /= vertexCount;
+            centroidZ /= vertexCount;
+
+            // Calculate the Euclidean distance from the camera to the centroid
+            double distance = Math.sqrt(Math.pow(cameraX - centroidX, 2) +
+                    Math.pow(cameraY - centroidY, 2) +
+                    Math.pow(cameraZ - centroidZ, 2));
+
+            depths[j] = distance;
+        }
+        return depths;
+    }
+
+    public static Point project(Coordinate3D xAxisEnd, Camera camera) {
+        Pose3D pose = camera.getPose();
+        double px = pose.getPosition().getX();
+        double py = pose.getPosition().getY();
+        double pz = pose.getPosition().getZ();
+
+        double cameraX = camera.getPose().getPosition().getX();
+        double cameraY = camera.getPose().getPosition().getY();
+        double cameraZ = camera.getPose().getPosition().getZ();
+
+        // Adjust vertex coordinates by the instance's pose
+        Coordinate3D adjustedVertex = new Coordinate3D(xAxisEnd.x + px, xAxisEnd.y + py, xAxisEnd.z + pz);
+
+        // Translate the point based on the camera position
+        double translatedX = adjustedVertex.x - cameraX;
+        double translatedY = adjustedVertex.y - cameraY;
+        double translatedZ = adjustedVertex.z - cameraZ;
+
+        // Convert degrees to radians
+        double yaw = Math.toRadians(pose.getRotation().getRY());
+        double pitch = Math.toRadians(pose.getRotation().getRX());
+
+        // Apply rotation based on the camera orientation
+        double xRotated = Math.cos(yaw) * translatedX + Math.sin(yaw) * translatedZ;
+        double zRotated = -Math.sin(yaw) * translatedX + Math.cos(yaw) * translatedZ;
+
+        double yRotated = -Math.sin(pitch) * zRotated + Math.cos(pitch) * translatedY;
+        double zRotatedFinal = Math.cos(pitch) * zRotated + Math.sin(pitch) * translatedY;
+
+        // Ensure zRotatedFinal is not zero to avoid divide by zero
+        if (zRotatedFinal <= 0) zRotatedFinal = 0.01; // small offset to avoid division by zero
+
+        // Project the 3D point to 2D using perspective projection
+        double fov = Math.toRadians(camera.getFov());
+        double aspectRatio = (double) camera.getScreenWidth() / (double) camera.getScreenHeight();
+
+        // Calculate the scale factor based on FOV and distance
+        double scale = Math.tan(fov / 2) * zRotatedFinal;
+
+        // Calculate the projected coordinates in normalized device coordinates (NDC)
+        double projectedX = (xRotated / scale) / aspectRatio; // Apply aspect ratio
+        double projectedY = (yRotated / scale); // Y remains unchanged
+
+        // Map NDC to screen coordinates
+        double screenX = (projectedX + 1) * ((double) camera.getScreenWidth() / 2); // Transform X from [-1, 1] to [0, screenWidth]
+        double screenY = (1 - projectedY) * ((double) camera.getScreenHeight() / 2); // Transform Y from [-1, 1] to [0, screenHeight]
+
+        return new Point((int) screenX, (int) screenY);
+    }
 }

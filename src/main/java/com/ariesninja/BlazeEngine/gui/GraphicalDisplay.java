@@ -2,7 +2,9 @@ package com.ariesninja.BlazeEngine.gui;
 
 import com.ariesninja.BlazeEngine.Client;
 import com.ariesninja.BlazeEngine.utils2d.Line;
+import com.ariesninja.BlazeEngine.utils3d.Coordinate3D;
 import com.ariesninja.BlazeEngine.utils3d.Perspective;
+import com.ariesninja.BlazeEngine.utils3d.PolygonWithDepth;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -79,10 +81,10 @@ public class GraphicalDisplay extends Frame implements KeyListener {
     public void paint(Graphics g) {
 
         // Draw faces
-        List<Entry<ArrayList<Polygon>, Color>> faces = c.generateSurfaces();
-        for (Entry<ArrayList<Polygon>, Color> entry : faces) {
+        List<Entry<PolygonWithDepth, Color>> faces = c.generateSurfaces();
+        for (Entry<PolygonWithDepth, Color>  entry : faces) {
             g.setColor(entry.getValue());
-            for (Polygon polygon : entry.getKey()) {
+            for (Polygon polygon : entry.getKey().getPolygons()) {
                 g.fillPolygon(polygon);
             }
         }
@@ -97,6 +99,43 @@ public class GraphicalDisplay extends Frame implements KeyListener {
 //            int y2 = (int) Math.round(l.end.y);
 //            g.drawLine(x1, y1, x2, y2);
 //        }
+
+        double crosshairSize = 0.04;
+
+        // Draw a crosshair with 3 lines that each represent a different axis (red, green, blue)
+        g.setColor(Color.RED);
+        // Define the 3D coordinates of the x-axis
+        Coordinate3D xAxisStart = new Coordinate3D(0, 0, 0); // Origin
+        Coordinate3D xAxisEnd = new Coordinate3D(crosshairSize, 0, 0);   // Point along the x-axis
+
+// Project the 3D coordinates onto the 2D screen
+        Point start2D = Perspective.project(xAxisStart, c.getCamera());
+        Point end2D = Perspective.project(xAxisEnd, c.getCamera());
+
+// Draw the line using the projected coordinates
+        g.drawLine(start2D.x, start2D.y, end2D.x, end2D.y);
+
+        g.setColor(Color.GREEN);
+
+        Coordinate3D yAxisStart = new Coordinate3D(0, 0, 0); // Origin
+        Coordinate3D yAxisEnd = new Coordinate3D(0, crosshairSize, 0);   // Point along the y-axis
+
+        Point start2Dy = Perspective.project(yAxisStart, c.getCamera());
+        Point end2Dy = Perspective.project(yAxisEnd, c.getCamera());
+
+        g.drawLine(start2Dy.x, start2Dy.y, end2Dy.x, end2Dy.y);
+
+        g.setColor(Color.BLUE);
+
+        Coordinate3D zAxisStart = new Coordinate3D(0, 0, 0); // Origin
+        Coordinate3D zAxisEnd = new Coordinate3D(0, 0, crosshairSize);   // Point along the z-axis
+
+        Point start2Dz = Perspective.project(zAxisStart, c.getCamera());
+        Point end2Dz = Perspective.project(zAxisEnd, c.getCamera());
+
+        g.drawLine(start2Dz.x, start2Dz.y, end2Dz.x, end2Dz.y);
+
+
     }
 
     @Override
