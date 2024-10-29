@@ -4,16 +4,16 @@ import java.awt.*;
 import java.util.ArrayList;
 
 public class PolygonWithDepth {
-    private ArrayList<Polygon> polygons;
+    private Polygon polygon;
     private double[] depths;
 
-    public PolygonWithDepth(ArrayList<Polygon> polygons, double[] depths) {
-        this.polygons = polygons;
+    public PolygonWithDepth(Polygon polygon, double[] depths) {
+        this.polygon = polygon;
         this.depths = depths;
     }
 
-    public ArrayList<Polygon> getPolygons() {
-        return polygons;
+    public Polygon getPolygon() {
+        return polygon;
     }
 
     public double[] getDepths() {

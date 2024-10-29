@@ -6,21 +6,27 @@ public class Main {
 
     public static void main(String[] args) {
 
-        Client client = new Client(1920, 1080);
+        Client client = new Client(1000, 600);
 
         World w = new World();
 
         client.load(w);
 
-        client.getCamera().setPose(new Pose3D(0,0,-5));
+        client.getCamera().setPose(new Pose3D(0, 0, -5));
+        client.getCamera().setFov(60);
 
         // Ground
-         Instance ground = w.place(new Model.RECTANGULAR_PRISM(40, 1, 40), new Pose3D(-20, -10, -20), new Color(128, 128, 128));
-         w.place(ground);
+        w.place(new Model.RECTANGULAR_PRISM(40, 2, 40), new Pose3D(-20, -10, -20), new Color(128, 128, 128));
+
+        w.place(new Model.CUBE(1), new Pose3D(0, 0, 0), Color.WHITE);
 
         w.place(new Model.CUBE(1), new Pose3D(8, 0, 0), Color.RED);
 
-        w.place(new Model.CUBE(1), new Pose3D(1, 6, 0), Color.GREEN);
+        w.place(new Model.CUBE(1), new Pose3D(0, 8, 0), Color.GREEN);
+
+        w.place(new Model.CUBE(1), new Pose3D(0, 0, 8), Color.BLUE);
+
+        w.place(new Model.RECTANGULAR_PRISM(2, 2, 2), new Pose3D(0, 5, 0), Color.WHITE);
 
         // w.place(new Model.RECTANGULAR_PRISM(1, 1, 38), new Pose3D(-18, -2, -18), Color.BLUE);
 
@@ -34,7 +40,7 @@ public class Main {
 
         //w.place(m, new Pose3D(2, 0, 0));
 
-        client.getCamera().setPose(new Pose3D(0,0,-5));
+        client.getCamera().setPose(new Pose3D(0, 0, -5));
 
     }
 
