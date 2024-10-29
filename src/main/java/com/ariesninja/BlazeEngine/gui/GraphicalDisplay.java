@@ -58,7 +58,7 @@ public class GraphicalDisplay extends Frame implements KeyListener {
 
         setVisible(true);
 
-        Timer timer = new Timer(16, e -> {
+        Timer timer = new Timer(0, e -> {
             if (!c.isRunning()) return;
             ClientControl.controlCamera(this.c);  // Update camera movement
             repaint();  // Redraw the frame
@@ -98,9 +98,7 @@ public class GraphicalDisplay extends Frame implements KeyListener {
         List<Entry<PolygonWithDepth, Color>> faces = c.generateSurfaces();
         for (Entry<PolygonWithDepth, Color> entry : faces) {
             g.setColor(entry.getValue());
-            for (Polygon polygon : entry.getKey().getPolygons()) {
-                g.fillPolygon(polygon);
-            }
+            g.fillPolygon(entry.getKey().getPolygon());
         }
 
         // Update rendering order text every 30 frames
@@ -112,13 +110,13 @@ public class GraphicalDisplay extends Frame implements KeyListener {
             renderingOrderText = sb.toString();
         }
 
-        // Always display rendering order text
-        g.setColor(Color.WHITE);
-        int yOffset = 20;
-        for (String line : renderingOrderText.split("\n")) {
-            g.drawString(line, 10, yOffset);
-            yOffset += 20;
-        }
+//        // Always display rendering order text
+//        g.setColor(Color.WHITE);
+//        int yOffset = 20;
+//        for (String line : renderingOrderText.split("\n")) {
+//            g.drawString(line, 10, yOffset);
+//            yOffset += 20;
+//        }
 
         // Display framerate in the top right corner
         g.drawString("FPS: " + framerate, 10, getHeight()-20);

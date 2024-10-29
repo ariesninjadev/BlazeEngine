@@ -53,8 +53,10 @@ public class Client {
         for (Instance i : world.getModels()) {
             ArrayList<Polygon> instancePolygons = Perspective.filledSurfaces(i, camera);
             double[] depths = Perspective.calculateDepths(i, camera);
-            PolygonWithDepth polygonWithDepth = new PolygonWithDepth(instancePolygons, depths);
-            polygons.put(polygonWithDepth, i.getColor());
+            for (int j=0; j<instancePolygons.size(); j++) {
+                PolygonWithDepth polygonWithDepth = new PolygonWithDepth(instancePolygons.get(j), depths[j]);
+                polygons.put(polygonWithDepth, i.getColor());
+            }
         }
 
         // Create a list from the map entries
@@ -64,15 +66,10 @@ public class Client {
         Collections.sort(polygonList, new Comparator<Entry<PolygonWithDepth, Color>>() {
             @Override
             public int compare(Entry<PolygonWithDepth, Color> o1, Entry<PolygonWithDepth, Color> o2) {
-                double[] depths1 = o1.getKey().getDepths();
-                double[] depths2 = o2.getKey().getDepths();
-                for (int i = 0; i < depths1.length && i < depths2.length; i++) {
-                    int comparison = Double.compare(depths2[i], depths1[i]); // Sort in descending order
-                    if (comparison != 0) {
-                        return comparison;
-                    }
-                }
-                return 0;
+                double depths1 = o1.getKey().getDepth();
+                double depths2 = o2.getKey().getDepth();
+                // Sort in descending order
+                return Double.compare(depths2, depths1);
             }
         });
 

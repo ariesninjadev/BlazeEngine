@@ -5,18 +5,18 @@ import java.util.ArrayList;
 
 public class PolygonWithDepth {
     private Polygon polygon;
-    private double[] depths;
+    private double depth;
 
-    public PolygonWithDepth(Polygon polygon, double[] depths) {
+    public PolygonWithDepth(Polygon polygon, double depth) {
         this.polygon = polygon;
-        this.depths = depths;
+        this.depth = depth;
     }
 
     public Polygon getPolygon() {
         return polygon;
     }
 
-    public double[] getDepths() {
-        return depths;
+    public double getDepth() {
+        return depth;
     }
 }
