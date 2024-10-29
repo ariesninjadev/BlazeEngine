@@ -98,4 +98,33 @@ public class Camera {
         pose.transform(p);
     }
 
+    public double[][] getRotationMatrix() {
+        double angleX = Math.toRadians(pose.getRotation().r_x);
+        double angleY = -Math.toRadians(pose.getRotation().r_y);
+        double angleZ = Math.toRadians(pose.getRotation().r_z);
+
+        double cosX = Math.cos(angleX);
+        double sinX = Math.sin(angleX);
+        double cosY = Math.cos(angleY);
+        double sinY = Math.sin(angleY);
+        double cosZ = Math.cos(angleZ);
+        double sinZ = Math.sin(angleZ);
+
+        double[][] rotationMatrix = new double[3][3];
+
+        rotationMatrix[0][0] = cosY * cosZ;
+        rotationMatrix[0][1] = cosY * sinZ;
+        rotationMatrix[0][2] = -sinY;
+
+        rotationMatrix[1][0] = sinX * sinY * cosZ - cosX * sinZ;
+        rotationMatrix[1][1] = sinX * sinY * sinZ + cosX * cosZ;
+        rotationMatrix[1][2] = sinX * cosY;
+
+        rotationMatrix[2][0] = cosX * sinY * cosZ + sinX * sinZ;
+        rotationMatrix[2][1] = cosX * sinY * sinZ - sinX * cosZ;
+        rotationMatrix[2][2] = cosX * cosY;
+
+        return rotationMatrix;
+    }
+
 }

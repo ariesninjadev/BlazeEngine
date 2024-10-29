@@ -16,8 +16,8 @@ import java.util.Map.Entry;
 
 public class Client {
 
-    int width = 500;
-    int height = 400;
+    int width;
+    int height;
 
     private GraphicalDisplay w;
 
@@ -26,8 +26,10 @@ public class Client {
 
     private boolean isRunning;
 
-    public Client() {
+    public Client(int width, int height) {
         w = new GraphicalDisplay(this, "Graphical", width, height, Color.BLACK);
+        this.width = width;
+        this.height = height;
     }
 
     public void load(World wr) {
@@ -44,17 +46,6 @@ public class Client {
             lines.addAll(instanceLines);
         }
         return lines;
-    }
-
-    private double averageDepth(PolygonWithDepth polygonWithDepth) {
-        double totalDepth = 0;
-        int count = 0;
-        double[] depthArray = polygonWithDepth.getDepths();
-        for (double depth : depthArray) {
-            totalDepth += depth;
-            count++;
-        }
-        return totalDepth / count;
     }
 
     public List<Entry<PolygonWithDepth, Color>> generateSurfaces() {

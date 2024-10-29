@@ -1,5 +1,6 @@
 package com.ariesninja.BlazeEngine.gui;
 
+import com.ariesninja.BlazeEngine.Camera;
 import com.ariesninja.BlazeEngine.Client;
 import com.ariesninja.BlazeEngine.utils2d.Line;
 import com.ariesninja.BlazeEngine.utils3d.Coordinate3D;
@@ -24,6 +25,11 @@ public class GraphicalDisplay extends Frame implements KeyListener {
     private Image offscreenImage;
     private Graphics offscreenGraphics;
     private Client c;
+    private int frameCount = 0;
+    private String renderingOrderText = "";
+    private long lastTime = System.currentTimeMillis();
+    private int frames = 0;
+    private int framerate = 0;
 
     public GraphicalDisplay(Client c, String t, int w, int h, Color col) {
         this.c = c;
@@ -79,63 +85,86 @@ public class GraphicalDisplay extends Frame implements KeyListener {
 
     @Override
     public void paint(Graphics g) {
+        frameCount++;
+        frames++;
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastTime >= 1000) {
+            framerate = frames;
+            frames = 0;
+            lastTime = currentTime;
+        }
 
         // Draw faces
         List<Entry<PolygonWithDepth, Color>> faces = c.generateSurfaces();
-        for (Entry<PolygonWithDepth, Color>  entry : faces) {
+        for (Entry<PolygonWithDepth, Color> entry : faces) {
             g.setColor(entry.getValue());
             for (Polygon polygon : entry.getKey().getPolygons()) {
                 g.fillPolygon(polygon);
             }
         }
 
-        // Draw wireframe
-//        g.setColor(Color.WHITE);
-//        ArrayList<Line> lines = c.generateWireframe();
-//        for (Line l : lines) {
-//            int x1 = (int) Math.round(l.start.x);
-//            int y1 = (int) Math.round(l.start.y);
-//            int x2 = (int) Math.round(l.end.x);
-//            int y2 = (int) Math.round(l.end.y);
-//            g.drawLine(x1, y1, x2, y2);
-//        }
+        // Update rendering order text every 30 frames
+        if (frameCount % 30 == 0) {
+            StringBuilder sb = new StringBuilder("Rendering Order:\n");
+            for (Entry<PolygonWithDepth, Color> entry : faces) {
+                sb.append(entry.getValue().toString()).append("\n");
+            }
+            renderingOrderText = sb.toString();
+        }
 
-        double crosshairSize = 0.04;
+        // Always display rendering order text
+        g.setColor(Color.WHITE);
+        int yOffset = 20;
+        for (String line : renderingOrderText.split("\n")) {
+            g.drawString(line, 10, yOffset);
+            yOffset += 20;
+        }
 
-        // Draw a crosshair with 3 lines that each represent a different axis (red, green, blue)
-        g.setColor(Color.RED);
-        // Define the 3D coordinates of the x-axis
-        Coordinate3D xAxisStart = new Coordinate3D(0, 0, 0); // Origin
-        Coordinate3D xAxisEnd = new Coordinate3D(crosshairSize, 0, 0);   // Point along the x-axis
+        // Display framerate in the top right corner
+        g.drawString("FPS: " + framerate, 10, getHeight()-20);
 
-// Project the 3D coordinates onto the 2D screen
-        Point start2D = Perspective.project(xAxisStart, c.getCamera());
-        Point end2D = Perspective.project(xAxisEnd, c.getCamera());
+        // Get camera orientation
+        Camera camera = c.getCamera();
+        double[][] rotationMatrix = camera.getRotationMatrix();
 
-// Draw the line using the projected coordinates
-        g.drawLine(start2D.x, start2D.y, end2D.x, end2D.y);
+        double crosshairSize = 0.5;
 
-        g.setColor(Color.GREEN);
+        // Define crosshair lines in 3D space
+        Coordinate3D[] crosshairLines = {
+                new Coordinate3D(0, 0, 0), new Coordinate3D(crosshairSize, 0, 0),  // X axis
+                new Coordinate3D(0, 0, 0), new Coordinate3D(0, -crosshairSize, 0),  // Y axis
+                new Coordinate3D(0, 0, 0), new Coordinate3D(0, 0, crosshairSize)   // Z axis
+        };
 
-        Coordinate3D yAxisStart = new Coordinate3D(0, 0, 0); // Origin
-        Coordinate3D yAxisEnd = new Coordinate3D(0, crosshairSize, 0);   // Point along the y-axis
+        // Transform and project crosshair lines
+        int centerX = getWidth() / 2;
+        int centerY = getHeight() / 2;
+        int size = (int) (Math.min(getWidth(), getHeight()) * 0.04);
 
-        Point start2Dy = Perspective.project(yAxisStart, c.getCamera());
-        Point end2Dy = Perspective.project(yAxisEnd, c.getCamera());
+        for (int i = 0; i < crosshairLines.length; i += 2) {
+            Coordinate3D start = transformAndProject(crosshairLines[i], rotationMatrix, size, centerX, centerY);
+            Coordinate3D end = transformAndProject(crosshairLines[i + 1], rotationMatrix, size, centerX, centerY);
 
-        g.drawLine(start2Dy.x, start2Dy.y, end2Dy.x, end2Dy.y);
+            // Set color based on axis
+            if (i == 0) g.setColor(Color.RED);       // X axis
+            else if (i == 2) g.setColor(Color.GREEN); // Y axis
+            else g.setColor(Color.BLUE);             // Z axis
 
-        g.setColor(Color.BLUE);
+            g.drawLine((int) start.x, (int) start.y, (int) end.x, (int) end.y);
+        }
+    }
 
-        Coordinate3D zAxisStart = new Coordinate3D(0, 0, 0); // Origin
-        Coordinate3D zAxisEnd = new Coordinate3D(0, 0, crosshairSize);   // Point along the z-axis
+    private Coordinate3D transformAndProject(Coordinate3D point, double[][] rotationMatrix, int size, int centerX, int centerY) {
+        // Apply rotation
+        double x = point.x * rotationMatrix[0][0] + point.y * rotationMatrix[0][1] + point.z * rotationMatrix[0][2];
+        double y = point.x * rotationMatrix[1][0] + point.y * rotationMatrix[1][1] + point.z * rotationMatrix[1][2];
+        double z = point.x * rotationMatrix[2][0] + point.y * rotationMatrix[2][1] + point.z * rotationMatrix[2][2];
 
-        Point start2Dz = Perspective.project(zAxisStart, c.getCamera());
-        Point end2Dz = Perspective.project(zAxisEnd, c.getCamera());
+        // Scale and translate to screen coordinates
+        x = x * size + centerX;
+        y = y * size + centerY;
 
-        g.drawLine(start2Dz.x, start2Dz.y, end2Dz.x, end2Dz.y);
-
-
+        return new Coordinate3D(x, y, z);
     }
 
     @Override

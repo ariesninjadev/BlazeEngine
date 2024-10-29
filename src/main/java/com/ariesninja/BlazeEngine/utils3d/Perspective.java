@@ -175,53 +175,15 @@ public class Perspective {
         return depths;
     }
 
-    public static Point project(Coordinate3D xAxisEnd, Camera camera) {
-        Pose3D pose = camera.getPose();
+    public static Line calculateLine(Line3D line, Camera c, int screenWidth, int screenHeight) {
+        Pose3D pose = c.getPose();
         double px = pose.getPosition().getX();
         double py = pose.getPosition().getY();
         double pz = pose.getPosition().getZ();
 
-        double cameraX = camera.getPose().getPosition().getX();
-        double cameraY = camera.getPose().getPosition().getY();
-        double cameraZ = camera.getPose().getPosition().getZ();
+        Coordinate3D adjustedStart = new Coordinate3D(line.start.x + px, line.start.y + py, line.start.z + pz);
+        Coordinate3D adjustedEnd = new Coordinate3D(line.end.x + px, line.end.y + py, line.end.z + pz);
 
-        // Adjust vertex coordinates by the instance's pose
-        Coordinate3D adjustedVertex = new Coordinate3D(xAxisEnd.x + px, xAxisEnd.y + py, xAxisEnd.z + pz);
-
-        // Translate the point based on the camera position
-        double translatedX = adjustedVertex.x - cameraX;
-        double translatedY = adjustedVertex.y - cameraY;
-        double translatedZ = adjustedVertex.z - cameraZ;
-
-        // Convert degrees to radians
-        double yaw = Math.toRadians(pose.getRotation().getRY());
-        double pitch = Math.toRadians(pose.getRotation().getRX());
-
-        // Apply rotation based on the camera orientation
-        double xRotated = Math.cos(yaw) * translatedX + Math.sin(yaw) * translatedZ;
-        double zRotated = -Math.sin(yaw) * translatedX + Math.cos(yaw) * translatedZ;
-
-        double yRotated = -Math.sin(pitch) * zRotated + Math.cos(pitch) * translatedY;
-        double zRotatedFinal = Math.cos(pitch) * zRotated + Math.sin(pitch) * translatedY;
-
-        // Ensure zRotatedFinal is not zero to avoid divide by zero
-        if (zRotatedFinal <= 0) zRotatedFinal = 0.01; // small offset to avoid division by zero
-
-        // Project the 3D point to 2D using perspective projection
-        double fov = Math.toRadians(camera.getFov());
-        double aspectRatio = (double) camera.getScreenWidth() / (double) camera.getScreenHeight();
-
-        // Calculate the scale factor based on FOV and distance
-        double scale = Math.tan(fov / 2) * zRotatedFinal;
-
-        // Calculate the projected coordinates in normalized device coordinates (NDC)
-        double projectedX = (xRotated / scale) / aspectRatio; // Apply aspect ratio
-        double projectedY = (yRotated / scale); // Y remains unchanged
-
-        // Map NDC to screen coordinates
-        double screenX = (projectedX + 1) * ((double) camera.getScreenWidth() / 2); // Transform X from [-1, 1] to [0, screenWidth]
-        double screenY = (1 - projectedY) * ((double) camera.getScreenHeight() / 2); // Transform Y from [-1, 1] to [0, screenHeight]
-
-        return new Point((int) screenX, (int) screenY);
+        return new Line(poly3Dto2D(adjustedStart, c, screenWidth, screenHeight), poly3Dto2D(adjustedEnd, c, screenWidth, screenHeight));
     }
 }
