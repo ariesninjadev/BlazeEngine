@@ -6,9 +6,13 @@ import java.util.ArrayList;
 public class World {
 
     ArrayList<Instance> models;
+    ArrayList<Light> lights;
 
     public World() {
+
         models = new ArrayList<>();
+        lights = new ArrayList<>();
+
     }
 
     public void place(Instance i) {
@@ -39,8 +43,27 @@ public class World {
         this.models = models;
     }
 
+    public ArrayList<Light> getLights() {
+        return lights;
+    }
+
+    public void setLights(ArrayList<Light> lights) {
+        this.lights = lights;
+    }
+
+    public void addLight(Light l) {
+        lights.add(l);
+    }
+
+    public void removeLight(Light l) {
+        lights.remove(l);
+    }
+
     public void reset() {
+
         models = new ArrayList<>();
+        lights = new ArrayList<>();
+
     }
 
 }

@@ -16,6 +16,8 @@ public class Model {
 
     ArrayList<Line3D> lines;
 
+    ArrayList<Coordinate3D> vertices;
+
     boolean isDimensional;
 
     boolean isWireframe = true; // No filling yet
@@ -41,6 +43,8 @@ public class Model {
             vertices.add(new Coordinate3D(s, 0, s));
             vertices.add(new Coordinate3D(s, s, 0));
             vertices.add(new Coordinate3D(s, s, s));
+
+            this.vertices = vertices;
 
             ArrayList<Coordinate3D> surface1 = new ArrayList<>();
             surface1.add(vertices.get(0));
@@ -107,6 +111,8 @@ public class Model {
             vertices.add(new Coordinate3D(w, 0, l));
             vertices.add(new Coordinate3D(w, h, 0));
             vertices.add(new Coordinate3D(w, h, l));
+
+            this.vertices = vertices;
 
             ArrayList<Coordinate3D> surface1 = new ArrayList<>();
             surface1.add(vertices.get(0));
@@ -220,6 +226,10 @@ public class Model {
 
     public List<Surface3D> getSurfaces() {
         return surfaces;
+    }
+
+    public ArrayList<Coordinate3D> getVertices() {
+        return vertices;
     }
 
 }

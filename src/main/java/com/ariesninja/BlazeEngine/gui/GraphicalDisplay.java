@@ -2,9 +2,9 @@ package com.ariesninja.BlazeEngine.gui;
 
 import com.ariesninja.BlazeEngine.Camera;
 import com.ariesninja.BlazeEngine.Client;
-import com.ariesninja.BlazeEngine.utils2d.Line;
+import com.ariesninja.BlazeEngine.Light;
 import com.ariesninja.BlazeEngine.utils3d.Coordinate3D;
-import com.ariesninja.BlazeEngine.utils3d.Perspective;
+import com.ariesninja.BlazeEngine.utils3d.Computation;
 import com.ariesninja.BlazeEngine.utils3d.PolygonWithDepth;
 
 import javax.imageio.ImageIO;
@@ -16,9 +16,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 
 public class GraphicalDisplay extends Frame implements KeyListener {
 
@@ -58,7 +56,7 @@ public class GraphicalDisplay extends Frame implements KeyListener {
 
         setVisible(true);
 
-        Timer timer = new Timer(0, e -> {
+        Timer timer = new Timer(10, e -> {
             if (!c.isRunning()) return;
             ClientControl.controlCamera(this.c);  // Update camera movement
             repaint();  // Redraw the frame
@@ -95,28 +93,33 @@ public class GraphicalDisplay extends Frame implements KeyListener {
         }
 
         // Draw faces
-        List<Entry<PolygonWithDepth, Color>> faces = c.generateSurfaces();
-        for (Entry<PolygonWithDepth, Color> entry : faces) {
-            g.setColor(entry.getValue());
-            g.fillPolygon(entry.getKey().getPolygon());
+        List<PolygonWithDepth> faces = c.generateSurfaces();
+        for (PolygonWithDepth entry : faces) {
+            g.setColor(entry.getColor());
+            // Calculate final color based on lighting
+            for (Light light : c.getGlobalLights()) {
+                entry.setColor(Computation.calculateLighting(entry, light));
+            }
+            g.setColor(entry.getColor());
+            g.fillPolygon(entry.getPolygon());
         }
 
         // Update rendering order text every 30 frames
         if (frameCount % 30 == 0) {
             StringBuilder sb = new StringBuilder("Rendering Order:\n");
-            for (Entry<PolygonWithDepth, Color> entry : faces) {
-                sb.append(entry.getValue().toString()).append("\n");
+            for (PolygonWithDepth entry : faces) {
+                sb.append(entry.getColor().toString()).append(" - ").append(entry.getDepth()).append("\n");
             }
             renderingOrderText = sb.toString();
         }
 
-//        // Always display rendering order text
-//        g.setColor(Color.WHITE);
-//        int yOffset = 20;
-//        for (String line : renderingOrderText.split("\n")) {
-//            g.drawString(line, 10, yOffset);
-//            yOffset += 20;
-//        }
+        // Always display rendering order text
+        g.setColor(Color.WHITE);
+        int yOffset = 40;
+        for (String line : renderingOrderText.split("\n")) {
+            g.drawString(line, 10, yOffset);
+            yOffset += 20;
+        }
 
         // Display framerate in the top right corner
         g.drawString("FPS: " + framerate, 10, getHeight()-20);

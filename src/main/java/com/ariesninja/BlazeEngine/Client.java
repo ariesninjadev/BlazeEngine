@@ -2,17 +2,15 @@ package com.ariesninja.BlazeEngine;
 
 import com.ariesninja.BlazeEngine.utils2d.Line;
 import com.ariesninja.BlazeEngine.gui.GraphicalDisplay;
-import com.ariesninja.BlazeEngine.utils3d.Perspective;
+import com.ariesninja.BlazeEngine.utils3d.Computation;
 import com.ariesninja.BlazeEngine.utils3d.PolygonWithDepth;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map.Entry;
 
 public class Client {
 
@@ -34,7 +32,7 @@ public class Client {
 
     public void load(World wr) {
         this.world = wr;
-        camera = new Camera(wr, new Pose3D(0,0,0), 90, 1.25, 0.1, 1000);
+        camera = new Camera(wr, new Pose3D(0,0,0), 90, 1.25, 0.1, 10);
         camera.bind(width, height);
         isRunning = true;
     }
@@ -42,38 +40,48 @@ public class Client {
     public ArrayList<Line> generateWireframe() {
         ArrayList<Line> lines = new ArrayList<>();
         for (Instance i : world.getModels()) {
-            ArrayList<Line> instanceLines = Perspective.calculate(i, camera);
+            ArrayList<Line> instanceLines = Computation.calculate(i, camera);
             lines.addAll(instanceLines);
         }
         return lines;
     }
 
-    public List<Entry<PolygonWithDepth, Color>> generateSurfaces() {
-        HashMap<PolygonWithDepth, Color> polygons = new HashMap<>();
+    // src/main/java/com/ariesninja/BlazeEngine/Client.java
+    public List<PolygonWithDepth> generateSurfaces() {
+        ArrayList<PolygonWithDepth> polygons = new ArrayList<>();
         for (Instance i : world.getModels()) {
-            ArrayList<Polygon> instancePolygons = Perspective.filledSurfaces(i, camera);
-            double[] depths = Perspective.calculateDepths(i, camera);
-            for (int j=0; j<instancePolygons.size(); j++) {
-                PolygonWithDepth polygonWithDepth = new PolygonWithDepth(instancePolygons.get(j), depths[j]);
-                polygons.put(polygonWithDepth, i.getColor());
+            ArrayList<PolygonWithDepth> instancePolygons = Computation.filledSurfaces(i, camera);
+            for (PolygonWithDepth polygon : instancePolygons) {
+                double minDepth = Double.MAX_VALUE;
+                for (int k = 0; k < polygon.getPolygon().npoints; k++) {
+                    // Retrieve the 3D coordinates of the vertex
+                    double vertexX = i.getModel().getVertices().get(k).x;
+                    double vertexY = i.getModel().getVertices().get(k).y;
+                    double vertexZ = i.getModel().getVertices().get(k).z;
+
+                    double vertexDepth = Computation.calculateVertexDepth(i, camera, vertexX, vertexY, vertexZ);
+                    if (vertexDepth < minDepth) {
+                        minDepth = vertexDepth;
+                    }
+                }
+                polygon.setDepth(minDepth);
+                polygon.setColor(i.getColor());
+                polygons.add(polygon);
             }
         }
 
-        // Create a list from the map entries
-        List<Entry<PolygonWithDepth, Color>> polygonList = new ArrayList<>(polygons.entrySet());
-
         // Sort the list based on the depth of each polygon
-        Collections.sort(polygonList, new Comparator<Entry<PolygonWithDepth, Color>>() {
+        Collections.sort(polygons, new Comparator<PolygonWithDepth>() {
             @Override
-            public int compare(Entry<PolygonWithDepth, Color> o1, Entry<PolygonWithDepth, Color> o2) {
-                double depths1 = o1.getKey().getDepth();
-                double depths2 = o2.getKey().getDepth();
+            public int compare(PolygonWithDepth o1, PolygonWithDepth o2) {
+                double depths1 = o1.getDepth();
+                double depths2 = o2.getDepth();
                 // Sort in descending order
                 return Double.compare(depths2, depths1);
             }
         });
 
-        return polygonList;
+        return polygons;
     }
 
 //    public ArrayList<Line> generateUnobstructedOutlines() {
@@ -95,5 +103,9 @@ public class Client {
 
     public GraphicalDisplay getDisplay() {
         return w;
+    }
+
+    public ArrayList<Light> getGlobalLights() {
+        return world.getLights();
     }
 }

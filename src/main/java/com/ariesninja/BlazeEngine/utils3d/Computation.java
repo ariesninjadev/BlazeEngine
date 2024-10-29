@@ -1,17 +1,13 @@
 package com.ariesninja.BlazeEngine.utils3d;
 
-import com.ariesninja.BlazeEngine.Instance;
-import com.ariesninja.BlazeEngine.Camera;
-import com.ariesninja.BlazeEngine.Model;
-import com.ariesninja.BlazeEngine.Pose3D;
+import com.ariesninja.BlazeEngine.*;
 import com.ariesninja.BlazeEngine.utils2d.Coordinate;
 import com.ariesninja.BlazeEngine.utils2d.Line;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 
-public class Perspective {
+public class Computation {
 
     private static Coordinate poly3Dto2D(Coordinate3D p, Camera c, int screenWidth, int screenHeight) {
         // Translate the point based on the camera position
@@ -51,10 +47,11 @@ public class Perspective {
         return new Coordinate(screenX, screenY);
     }
 
-    public static ArrayList<Polygon> filledSurfaces(Instance i, Camera c) {
+    public static ArrayList<PolygonWithDepth> filledSurfaces(Instance i, Camera c) {
         int sw = c.getScreenWidth();
         int sh = c.getScreenHeight();
         ArrayList<Polygon> polygons = new ArrayList<>();
+        ArrayList<PolygonWithDepth> result = new ArrayList<>();
 
         Pose3D pose = i.getPose();
         double px = pose.getPosition().getX();
@@ -63,15 +60,32 @@ public class Perspective {
 
         for (Surface3D surface : i.getModel().getSurfaces()) {
             Polygon polygon = new Polygon();
+            double centroidX = 0;
+            double centroidY = 0;
+            double centroidZ = 0;
+            int vertexCount = surface.getVertices().size();
+
             for (Coordinate3D vertex : surface.getVertices()) {
                 // Adjust vertex coordinates by the instance's pose
                 Coordinate3D adjustedVertex = new Coordinate3D(vertex.x + px, vertex.y + py, vertex.z + pz);
                 Coordinate projected = poly3Dto2D(adjustedVertex, c, sw, sh);
                 polygon.addPoint((int) projected.x, (int) projected.y);
+
+                // Sum up the coordinates for centroid calculation
+                centroidX += adjustedVertex.x;
+                centroidY += adjustedVertex.y;
+                centroidZ += adjustedVertex.z;
             }
+
+            // Calculate the centroid
+            centroidX /= vertexCount;
+            centroidY /= vertexCount;
+            centroidZ /= vertexCount;
+
             polygons.add(polygon);
+            result.add(new PolygonWithDepth(polygon, 0, new Coordinate3D(centroidX, centroidY, centroidZ), i.getColor()));
         }
-        return polygons;
+        return result;
     }
 
     public static ArrayList<Line> calculate(Instance i, Camera c) {
@@ -185,5 +199,73 @@ public class Perspective {
         Coordinate3D adjustedEnd = new Coordinate3D(line.end.x + px, line.end.y + py, line.end.z + pz);
 
         return new Line(poly3Dto2D(adjustedStart, c, screenWidth, screenHeight), poly3Dto2D(adjustedEnd, c, screenWidth, screenHeight));
+    }
+
+    public static double calculateVertexDepth(Instance instance, Camera camera, double x, double y, double z) {
+        Pose3D pose = instance.getPose();
+        double px = pose.getPosition().getX();
+        double py = pose.getPosition().getY();
+        double pz = pose.getPosition().getZ();
+
+        double cameraX = camera.getPose().getPosition().getX();
+        double cameraY = camera.getPose().getPosition().getY();
+        double cameraZ = camera.getPose().getPosition().getZ();
+
+        // Adjust vertex coordinates by the instance's pose
+        double adjustedX = x + px;
+        double adjustedY = y + py;
+        double adjustedZ = z + pz;
+
+        // Calculate the Euclidean distance from the camera to the vertex
+        double distance = Math.sqrt(Math.pow(cameraX - adjustedX, 2) +
+                Math.pow(cameraY - adjustedY, 2) +
+                Math.pow(cameraZ - adjustedZ, 2));
+
+        return distance;
+    }
+
+    private static final double CONSTANT_ATTENUATION = 1.0;
+    private static final double LINEAR_ATTENUATION = 0.09;
+    private static final double QUADRATIC_ATTENUATION = 0.032;
+
+    public static Color calculateLighting(PolygonWithDepth key, Light light) {
+        // Calculate the centroid of the polygon
+        double centroidX = 0;
+        double centroidY = 0;
+        double centroidZ = 0;
+        int vertexCount = key.getPolygon().npoints;
+
+        for (int i = 0; i < vertexCount; i++) {
+            centroidX += key.getPositionIn3dSpace().x;
+            centroidY += key.getPositionIn3dSpace().y;
+            centroidZ += key.getPositionIn3dSpace().z;
+        }
+
+        centroidX /= vertexCount;
+        centroidY /= vertexCount;
+        centroidZ /= vertexCount;
+
+        // Calculate the distance from the light to the centroid
+        double distance = Math.sqrt(
+                Math.pow(light.getPosition().x - centroidX, 2) +
+                        Math.pow(light.getPosition().y - centroidY, 2) +
+                        Math.pow(light.getPosition().z - centroidZ, 2)
+        );
+
+        double intensity = light.getIntensity();
+        double attenuation = 1 / (1 + CONSTANT_ATTENUATION + LINEAR_ATTENUATION * distance + QUADRATIC_ATTENUATION * Math.pow(distance, 2));
+        double r = key.getColor().getRed() / 255.0;
+        double g = key.getColor().getGreen() / 255.0;
+        double b = key.getColor().getBlue() / 255.0;
+        double rLight = light.getColor().getRed() / 255.0;
+        double gLight = light.getColor().getGreen() / 255.0;
+        double bLight = light.getColor().getBlue() / 255.0;
+        double rFinal = r * rLight * intensity * attenuation;
+        double gFinal = g * gLight * intensity * attenuation;
+        double bFinal = b * bLight * intensity * attenuation;
+        rFinal = Math.min(1, rFinal);
+        gFinal = Math.min(1, gFinal);
+        bFinal = Math.min(1, bFinal);
+        return new Color((int) (rFinal * 255), (int) (gFinal * 255), (int) (bFinal * 255));
     }
 }
