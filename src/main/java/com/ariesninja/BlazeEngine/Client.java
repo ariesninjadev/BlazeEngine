@@ -46,12 +46,11 @@ public class Client {
         return lines;
     }
 
-    // src/main/java/com/ariesninja/BlazeEngine/Client.java
     public List<PolygonWithDepth> generateSurfaces() {
         ArrayList<PolygonWithDepth> polygons = new ArrayList<>();
-        for (Instance i : world.getModels()) {
-            ArrayList<PolygonWithDepth> instancePolygons = Computation.filledSurfaces(i, camera);
-            for (PolygonWithDepth polygon : instancePolygons) {
+        for (Instance i : world.getModels()) { // for each cube
+            ArrayList<PolygonWithDepth> instancePolygons = Computation.filledSurfaces(i, camera); // generate list of polygons
+            for (PolygonWithDepth polygon : instancePolygons) { // for each polygon
                 double minDepth = Double.MAX_VALUE;
                 for (int k = 0; k < polygon.getPolygon().npoints; k++) {
                     // Retrieve the 3D coordinates of the vertex

@@ -92,15 +92,18 @@ public class GraphicalDisplay extends Frame implements KeyListener {
             lastTime = currentTime;
         }
 
+        Color[] colors = {Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.BLUE, Color.MAGENTA};
+
         // Draw faces
         List<PolygonWithDepth> faces = c.generateSurfaces();
+        int cz = 0;
         for (PolygonWithDepth entry : faces) {
+//            // Calculate final color based on lighting
+//            for (Light light : c.getGlobalLights()) {
+//                entry.setColor(Computation.calculateLighting(entry, light));
+//            }
             g.setColor(entry.getColor());
-            // Calculate final color based on lighting
-            for (Light light : c.getGlobalLights()) {
-                entry.setColor(Computation.calculateLighting(entry, light));
-            }
-            g.setColor(entry.getColor());
+            g.setColor(colors[cz++ % colors.length]);
             g.fillPolygon(entry.getPolygon());
         }
 
