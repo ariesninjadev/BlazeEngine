@@ -8,6 +8,12 @@ import java.awt.*;
 
 public class Main {
 
+    private static Color cycleColor(Color color, double speed) {
+        float[] hsbVals = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
+        float hue = (hsbVals[0] + (float) speed) % 1.0f; // Cycle hue
+        return Color.getHSBColor(hue, hsbVals[1], hsbVals[2]);
+    }
+
     public static void main(String[] args) {
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -49,7 +55,8 @@ public class Main {
 
         client.getCamera().setPose(new Pose3D(6, 10, -5, -10, 0, 0));
 
-        // Clock that moves the light between x = 0 and x = 20 by 0.1 every 100ms
+
+
         new Thread(() -> {
             boolean right = true;
             while (true) {
@@ -60,23 +67,28 @@ public class Main {
                 }
                 // Smoothly cycle colors
                 Color currentColor = light.getColor();
-                int red = (currentColor.getRed() + 1) % 256;
-                int green = (currentColor.getGreen() + 1) % 256;
-                int blue = (currentColor.getBlue() + 1) % 256;
-                Color newColor = new Color(red, green, blue);
+                Color newColor = cycleColor(currentColor, 0.001); // Adjust speed as needed
                 light.setColor(newColor);
                 lightCube.setColor(newColor);
 
-                // Move light
+                // Move light with smooth translation
+                double maxSpeed = 0.1;
+                double minSpeed = 0.01;
+                double range = 16.0;
+
                 if (right) {
-                    light.move(0.1, 0, 0);
-                    lightCube.move(0.1, 0, 0);
-                    if (light.getPosition().x >= 16) {
+                    double distanceToEnd = range - light.getPosition().x;
+                    double speed = minSpeed + (maxSpeed - minSpeed) * (distanceToEnd / range);
+                    light.move(speed, 0, 0);
+                    lightCube.move(speed, 0, 0);
+                    if (light.getPosition().x >= range) {
                         right = false;
                     }
                 } else {
-                    light.move(-0.1, 0, 0);
-                    lightCube.move(-0.1, 0, 0);
+                    double distanceToStart = light.getPosition().x;
+                    double speed = minSpeed + (maxSpeed - minSpeed) * (distanceToStart / range);
+                    light.move(-speed, 0, 0);
+                    lightCube.move(-speed, 0, 0);
                     if (light.getPosition().x <= 0) {
                         right = true;
                     }
