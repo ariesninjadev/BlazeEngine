@@ -1,5 +1,7 @@
 package com.ariesninja.BlazeEngine;
 
+import com.ariesninja.BlazeEngine.utils3d.Pose3D;
+
 public class Camera {
 
     public Pose3D pose;

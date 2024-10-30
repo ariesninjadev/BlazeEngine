@@ -1,5 +1,8 @@
 package com.ariesninja.BlazeEngine;
 
+import com.ariesninja.BlazeEngine.structs.Model;
+import com.ariesninja.BlazeEngine.utils3d.Pose3D;
+
 import java.awt.*;
 
 public class Instance {
@@ -42,6 +45,10 @@ public class Instance {
 
     public void setColor(Color c) {
         this.color = c;
+    }
+
+    public void move(double x, double y, double z) {
+        this.pose.move(x, y, z);
     }
 
 }

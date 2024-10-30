@@ -1,9 +1,12 @@
 package com.ariesninja.BlazeEngine;
 
+import com.ariesninja.BlazeEngine.structs.Light;
 import com.ariesninja.BlazeEngine.utils2d.Line;
 import com.ariesninja.BlazeEngine.gui.GraphicalDisplay;
 import com.ariesninja.BlazeEngine.utils3d.Computation;
-import com.ariesninja.BlazeEngine.utils3d.PolygonWithDepth;
+import com.ariesninja.BlazeEngine.utils3d.Coordinate3D;
+import com.ariesninja.BlazeEngine.utils3d.EnhancedPolygon;
+import com.ariesninja.BlazeEngine.utils3d.Pose3D;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -46,33 +49,28 @@ public class Client {
         return lines;
     }
 
-    public List<PolygonWithDepth> generateSurfaces() {
-        ArrayList<PolygonWithDepth> polygons = new ArrayList<>();
+    public List<EnhancedPolygon> generateSurfaces() {
+        ArrayList<EnhancedPolygon> polygons = new ArrayList<>();
         for (Instance i : world.getModels()) { // for each cube
-            ArrayList<PolygonWithDepth> instancePolygons = Computation.filledSurfaces(i, camera); // generate list of polygons
-            for (PolygonWithDepth polygon : instancePolygons) { // for each polygon
-                double minDepth = Double.MAX_VALUE;
-                for (int k = 0; k < polygon.getPolygon().npoints; k++) {
-                    // Retrieve the 3D coordinates of the vertex
-                    double vertexX = i.getModel().getVertices().get(k).x;
-                    double vertexY = i.getModel().getVertices().get(k).y;
-                    double vertexZ = i.getModel().getVertices().get(k).z;
-
-                    double vertexDepth = Computation.calculateVertexDepth(i, camera, vertexX, vertexY, vertexZ);
-                    if (vertexDepth < minDepth) {
-                        minDepth = vertexDepth;
-                    }
+            ArrayList<EnhancedPolygon> instancePolygons = Computation.filledSurfaces(i, camera); // generate list of polygons
+            for (EnhancedPolygon polygon : instancePolygons) { // for each polygon
+                double totalDepth = 0;
+                int vertexCount = polygon.getVertices().size();
+                for (Coordinate3D vertex : polygon.getVertices()) {
+                    double vertexDepth = Computation.calculateVertexDepth(i, camera, vertex.x, vertex.y, vertex.z);
+                    totalDepth += vertexDepth;
                 }
-                polygon.setDepth(minDepth);
+                double averageDepth = totalDepth / vertexCount;
+                polygon.setDepth(averageDepth);
                 polygon.setColor(i.getColor());
                 polygons.add(polygon);
             }
         }
 
         // Sort the list based on the depth of each polygon
-        Collections.sort(polygons, new Comparator<PolygonWithDepth>() {
+        Collections.sort(polygons, new Comparator<EnhancedPolygon>() {
             @Override
-            public int compare(PolygonWithDepth o1, PolygonWithDepth o2) {
+            public int compare(EnhancedPolygon o1, EnhancedPolygon o2) {
                 double depths1 = o1.getDepth();
                 double depths2 = o2.getDepth();
                 // Sort in descending order
@@ -106,5 +104,13 @@ public class Client {
 
     public ArrayList<Light> getGlobalLights() {
         return world.getLights();
+    }
+
+    public Pose3D getNearestObjectPosition() {
+        return Computation.getNearestObjectPosition(world, camera);
+    }
+
+    public World getWorld() {
+        return world;
     }
 }

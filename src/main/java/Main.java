@@ -1,5 +1,8 @@
 import com.ariesninja.BlazeEngine.*;
+import com.ariesninja.BlazeEngine.structs.Light;
+import com.ariesninja.BlazeEngine.structs.Model;
 import com.ariesninja.BlazeEngine.utils3d.Coordinate3D;
+import com.ariesninja.BlazeEngine.utils3d.Pose3D;
 
 import java.awt.*;
 
@@ -7,7 +10,12 @@ public class Main {
 
     public static void main(String[] args) {
 
-        Client client = new Client(1000, 600);
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int width = (int) (screenSize.width * 2 / 3.0);
+        int height = (int) (screenSize.height * 2 / 3.0);
+
+        // Create the Client with the calculated dimensions
+        Client client = new Client(width, height);
 
         World w = new World();
 
@@ -21,34 +29,50 @@ public class Main {
 
         //w.place(new Model.CUBE(1), new Pose3D(0, 0, 0), Color.WHITE);
 
-        //w.addLight(new Light(new Coordinate3D(9, 12, 19), 8, Color.WHITE));
-        //w.place(new Model.CUBE(1), new Pose3D(9, 12, 19), Color.WHITE);
+        Light light = new Light(new Coordinate3D(9, 12, 27), 4, new Color(54, 126, 221));
+        w.addLight(light);
+        Instance lightCube = w.place(new Model.CUBE(0.25), new Pose3D(9, 12, 27), new Color(54, 126, 221));
+
+//        Light light2 = new Light(new Coordinate3D(6, 0, 0), 4, Color.WHITE);
+//        w.addLight(light2);
+//        Instance lightCube2 = w.place(new Model.CUBE(0.25), new Pose3D(6, 0, 0), Color.WHITE);
 
         //w.place(new Model.CUBE(1), new Pose3D(8, 0, 0), Color.RED);
 
-        w.place(new Model.CUBE(1), new Pose3D(0, 8, 0), Color.GREEN);
+       // w.place(new Model.CUBE(1), new Pose3D(0, 8, 0), Color.GREEN);
 
-//        for (int i = 1; i < 9; i++) {
-//            for (int j = 4; j < 12; j++) {
-//                w.place(new Model.CUBE(1), new Pose3D(i, j, j+i), Color.GREEN);
-//            }
-//        }
+        for (int i = 1; i < 16; i++) {
+            for (int j = 4; j < 12; j++) {
+                w.place(new Model.CUBE(1), new Pose3D(i, j, j+i), Color.WHITE);
+            }
+        }
 
-        //w.place(new Model.CUBE(1), new Pose3D(0, 0, 8), Color.BLUE);
+        client.getCamera().setPose(new Pose3D(6, 10, -5, -10, 0, 0));
 
-        //w.place(new Model.RECTANGULAR_PRISM(2, 2, 2), new Pose3D(0, 5, 0), Color.WHITE);
-
-        // w.place(new Model.RECTANGULAR_PRISM(1, 1, 38), new Pose3D(-18, -2, -18), Color.BLUE);
-
-//        w.place(new Model.CUBE(1), new Pose3D(0, 1, 0));
-//        w.place(new Model.RECTANGULAR_PRISM(3, 1, 1), new Pose3D(0, 2, 0));
-//        w.place(new Model.RECTANGULAR_PRISM(1, 3, 1), new Pose3D(-1, 0, 0));
-//        w.place(new Model.RECTANGULAR_PRISM(1, 3, 1), new Pose3D(1, 0, 0));
-
-        // Make a letter A using the POLYGON_BUILDER model
-        //w.place(Custom.a(), new Pose3D(2, 0, 0));
-
-        client.getCamera().setPose(new Pose3D(0, 0, -5));
+        // Clock that moves the light between x = 0 and x = 20 by 0.1 every 100ms
+        new Thread(() -> {
+            boolean right = true;
+            while (true) {
+                try {
+                    Thread.sleep(20);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if (right) {
+                    light.move(0.1, 0, 0);
+                    lightCube.move(0.1, 0, 0);
+                    if (light.getPosition().x >= 16) {
+                        right = false;
+                    }
+                } else {
+                    light.move(-0.1, 0, 0);
+                    lightCube.move(-0.1, 0, 0);
+                    if (light.getPosition().x <= 0) {
+                        right = true;
+                    }
+                }
+            }
+        }).start();
 
     }
 

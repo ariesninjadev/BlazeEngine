@@ -2,10 +2,10 @@ package com.ariesninja.BlazeEngine.gui;
 
 import com.ariesninja.BlazeEngine.Camera;
 import com.ariesninja.BlazeEngine.Client;
-import com.ariesninja.BlazeEngine.Light;
-import com.ariesninja.BlazeEngine.utils3d.Coordinate3D;
+import com.ariesninja.BlazeEngine.structs.Light;
 import com.ariesninja.BlazeEngine.utils3d.Computation;
-import com.ariesninja.BlazeEngine.utils3d.PolygonWithDepth;
+import com.ariesninja.BlazeEngine.utils3d.Coordinate3D;
+import com.ariesninja.BlazeEngine.utils3d.EnhancedPolygon;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.List;
 
 public class GraphicalDisplay extends Frame implements KeyListener {
+
+    private static final String VERSION = "DEV_TEST";
 
     private Image offscreenImage;
     private Graphics offscreenGraphics;
@@ -56,7 +58,7 @@ public class GraphicalDisplay extends Frame implements KeyListener {
 
         setVisible(true);
 
-        Timer timer = new Timer(10, e -> {
+        Timer timer = new Timer(16, e -> {
             if (!c.isRunning()) return;
             ClientControl.controlCamera(this.c);  // Update camera movement
             repaint();  // Redraw the frame
@@ -81,6 +83,12 @@ public class GraphicalDisplay extends Frame implements KeyListener {
         g.drawImage(offscreenImage, 0, 0, this);
     }
 
+    private void rightAlign(Graphics g, String text, int line) {
+        FontMetrics fm = g.getFontMetrics();
+        int w = fm.stringWidth(text);
+        g.drawString(text, getWidth() - w - 20, (18*line)+50);
+    }
+
     @Override
     public void paint(Graphics g) {
         frameCount++;
@@ -92,25 +100,23 @@ public class GraphicalDisplay extends Frame implements KeyListener {
             lastTime = currentTime;
         }
 
-        Color[] colors = {Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.BLUE, Color.MAGENTA};
+        g.setFont(new Font("Monospaced", Font.PLAIN, 9));
 
         // Draw faces
-        List<PolygonWithDepth> faces = c.generateSurfaces();
-        int cz = 0;
-        for (PolygonWithDepth entry : faces) {
-//            // Calculate final color based on lighting
-//            for (Light light : c.getGlobalLights()) {
-//                entry.setColor(Computation.calculateLighting(entry, light));
-//            }
+        List<EnhancedPolygon> faces = c.generateSurfaces();
+        for (EnhancedPolygon entry : faces) {
+            // Calculate final color based on lighting
+            for (Light light : c.getGlobalLights()) {
+                entry.setColor(Computation.calculateLighting(entry, light));
+            }
             g.setColor(entry.getColor());
-            g.setColor(colors[cz++ % colors.length]);
             g.fillPolygon(entry.getPolygon());
         }
 
         // Update rendering order text every 30 frames
         if (frameCount % 30 == 0) {
             StringBuilder sb = new StringBuilder("Rendering Order:\n");
-            for (PolygonWithDepth entry : faces) {
+            for (EnhancedPolygon entry : faces) {
                 sb.append(entry.getColor().toString()).append(" - ").append(entry.getDepth()).append("\n");
             }
             renderingOrderText = sb.toString();
@@ -118,14 +124,43 @@ public class GraphicalDisplay extends Frame implements KeyListener {
 
         // Always display rendering order text
         g.setColor(Color.WHITE);
-        int yOffset = 40;
+        int yOffset = 30;
         for (String line : renderingOrderText.split("\n")) {
             g.drawString(line, 10, yOffset);
-            yOffset += 20;
+            yOffset += 9;
         }
 
-        // Display framerate in the top right corner
-        g.drawString("FPS: " + framerate, 10, getHeight()-20);
+        g.setFont(new Font("Monospaced", Font.PLAIN, 14));
+
+        // Right-align framerate in the top right corner
+        String framerateText = "FPS: " + framerate;
+        FontMetrics fm = g.getFontMetrics();
+        int framerateWidth = fm.stringWidth(framerateText);
+        g.drawString(framerateText, getWidth() - framerateWidth - 20, getHeight() - 20);
+
+        // Display ALL DEBUG INFO.
+        g.setColor(new Color(241, 124, 124));
+        rightAlign(g, "Blaze Engine", 0);
+        g.setColor(Color.WHITE);
+        rightAlign(g, "Created by Aries Powvalla", 1);
+        rightAlign(g, "Version " + VERSION, 2);
+        rightAlign(g, "Commit e9687ba7ff0", 3);
+        rightAlign(g, "2024 Edition", 4);
+
+        rightAlign(g, "Camera: " + c.getCamera().getPose().toString(), 6);
+        rightAlign(g, "Nearest object: " + c.getNearestObjectPosition(), 7);
+
+        rightAlign(g, "Global Lights: " + c.getGlobalLights().size(), 9);
+        rightAlign(g, "Models: " + c.getWorld().getModels().size(), 10);
+        rightAlign(g, "Instance Polygons: " + faces.size(), 11);
+
+        g.setFont(new Font("Monospaced", Font.BOLD, 14));
+        g.setColor(Color.GREEN);
+
+        rightAlign(g, "Current Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024 / 1024 + "KB", 13);
+
+        g.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        g.setColor(Color.WHITE);
 
         // Get camera orientation
         Camera camera = c.getCamera();

@@ -1,10 +1,9 @@
-import com.ariesninja.BlazeEngine.Model;
+import com.ariesninja.BlazeEngine.structs.Model;
 import com.ariesninja.BlazeEngine.utils3d.Coordinate3D;
 import com.ariesninja.BlazeEngine.utils3d.Line3D;
 import com.ariesninja.BlazeEngine.utils3d.Surface3D;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class Custom {

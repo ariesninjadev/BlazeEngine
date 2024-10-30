@@ -1,6 +1,8 @@
 package com.ariesninja.BlazeEngine.utils3d;
 
 import com.ariesninja.BlazeEngine.*;
+import com.ariesninja.BlazeEngine.structs.Light;
+import com.ariesninja.BlazeEngine.structs.Model;
 import com.ariesninja.BlazeEngine.utils2d.Coordinate;
 import com.ariesninja.BlazeEngine.utils2d.Line;
 
@@ -47,11 +49,11 @@ public class Computation {
         return new Coordinate(screenX, screenY);
     }
 
-    public static ArrayList<PolygonWithDepth> filledSurfaces(Instance i, Camera c) {
+    public static ArrayList<EnhancedPolygon> filledSurfaces(Instance i, Camera c) {
         int sw = c.getScreenWidth();
         int sh = c.getScreenHeight();
         ArrayList<Polygon> polygons = new ArrayList<>();
-        ArrayList<PolygonWithDepth> result = new ArrayList<>();
+        ArrayList<EnhancedPolygon> result = new ArrayList<>();
 
         Pose3D pose = i.getPose();
         double px = pose.getPosition().getX();
@@ -64,10 +66,12 @@ public class Computation {
             double centroidY = 0;
             double centroidZ = 0;
             int vertexCount = surface.getVertices().size();
+            ArrayList<Coordinate3D> vertices3D = new ArrayList<>();
 
             for (Coordinate3D vertex : surface.getVertices()) {
                 // Adjust vertex coordinates by the instance's pose
                 Coordinate3D adjustedVertex = new Coordinate3D(vertex.x + px, vertex.y + py, vertex.z + pz);
+                vertices3D.add(adjustedVertex);
                 Coordinate projected = poly3Dto2D(adjustedVertex, c, sw, sh);
                 polygon.addPoint((int) projected.x, (int) projected.y);
 
@@ -83,7 +87,7 @@ public class Computation {
             centroidZ /= vertexCount;
 
             polygons.add(polygon);
-            result.add(new PolygonWithDepth(polygon, 0, new Coordinate3D(centroidX, centroidY, centroidZ), i.getColor()));
+            result.add(new EnhancedPolygon(polygon, 0, new Coordinate3D(centroidX, centroidY, centroidZ), vertices3D, i.getColor()));
         }
         return result;
     }
@@ -212,23 +216,19 @@ public class Computation {
         double cameraZ = camera.getPose().getPosition().getZ();
 
         // Adjust vertex coordinates by the instance's pose
-        double adjustedX = x + px;
-        double adjustedY = y + py;
-        double adjustedZ = z + pz;
+        double adjustedX = x;
+        double adjustedY = y;
+        double adjustedZ = z;
 
         // Calculate the Euclidean distance from the camera to the vertex
-        double distance = Math.sqrt(Math.pow(cameraX - adjustedX, 2) +
-                Math.pow(cameraY - adjustedY, 2) +
-                Math.pow(cameraZ - adjustedZ, 2));
+        double distance = Math.sqrt(Math.pow(adjustedX - cameraX, 2) +
+                Math.pow(adjustedY - cameraY, 2) +
+                Math.pow(adjustedZ - cameraZ, 2));
 
         return distance;
     }
 
-    private static final double CONSTANT_ATTENUATION = 1.0;
-    private static final double LINEAR_ATTENUATION = 0.09;
-    private static final double QUADRATIC_ATTENUATION = 0.032;
-
-    public static Color calculateLighting(PolygonWithDepth key, Light light) {
+    public static Color calculateLighting(EnhancedPolygon key, Light light) {
         // Calculate the centroid of the polygon
         double centroidX = 0;
         double centroidY = 0;
@@ -252,20 +252,49 @@ public class Computation {
                         Math.pow(light.getPosition().z - centroidZ, 2)
         );
 
-        double intensity = light.getIntensity();
-        double attenuation = 1 / (1 + CONSTANT_ATTENUATION + LINEAR_ATTENUATION * distance + QUADRATIC_ATTENUATION * Math.pow(distance, 2));
-        double r = key.getColor().getRed() / 255.0;
-        double g = key.getColor().getGreen() / 255.0;
-        double b = key.getColor().getBlue() / 255.0;
-        double rLight = light.getColor().getRed() / 255.0;
-        double gLight = light.getColor().getGreen() / 255.0;
-        double bLight = light.getColor().getBlue() / 255.0;
-        double rFinal = r * rLight * intensity * attenuation;
-        double gFinal = g * gLight * intensity * attenuation;
-        double bFinal = b * bLight * intensity * attenuation;
-        rFinal = Math.min(1, rFinal);
-        gFinal = Math.min(1, gFinal);
-        bFinal = Math.min(1, bFinal);
-        return new Color((int) (rFinal * 255), (int) (gFinal * 255), (int) (bFinal * 255));
+        double attenuation = 1 / (1 + light.getConstant_attenuation() + light.getLinear_attenuation() * distance + light.getQuadratic_attenuation() * Math.pow(distance, 2));
+
+        // Get the object's base color
+        double r = key.getColor().getRed();
+        double g = key.getColor().getGreen();
+        double b = key.getColor().getBlue();
+
+        // Ambient lighting factor (controls the base light level when not directly illuminated)
+        double ambientFactor = light.getAmbientFactor(); // Adjust as necessary to achieve the desired darkness in shadowed areas
+
+        // Calculate the light's contribution with attenuation and scale by intensity
+        double rLight = light.getColor().getRed() * attenuation * light.getIntensity();
+        double gLight = light.getColor().getGreen() * attenuation * light.getIntensity();
+        double bLight = light.getColor().getBlue() * attenuation * light.getIntensity();
+
+        // Combine the base color with the light's contribution, scaled to balance, with ambient lighting
+        double scalingFactor = light.getScalingFactor();
+        double rFinal = Math.max(0, Math.min(255, r * ambientFactor + r * (1 - scalingFactor) + rLight * scalingFactor));
+        double gFinal = Math.max(0, Math.min(255, g * ambientFactor + g * (1 - scalingFactor) + gLight * scalingFactor));
+        double bFinal = Math.max(0, Math.min(255, b * ambientFactor + b * (1 - scalingFactor) + bLight * scalingFactor));
+
+        return new Color((int) rFinal, (int) gFinal, (int) bFinal);
     }
+
+
+
+    public static Pose3D getNearestObjectPosition(World world, Camera camera) {
+        ArrayList<Instance> instances = world.getModels();
+        double minDistance = Double.MAX_VALUE;
+        Pose3D nearestPose = null;
+
+        for (Instance i : instances) {
+            double[] depths = calculateDepths(i, camera);
+            for (double depth : depths) {
+                if (depth < minDistance) {
+                    minDistance = depth;
+                    nearestPose = i.getPose();
+                }
+            }
+        }
+
+        return nearestPose;
+    }
+
+
 }

@@ -1,4 +1,4 @@
-package com.ariesninja.BlazeEngine;
+package com.ariesninja.BlazeEngine.utils3d;
 
 public class Pose3D {
 
@@ -10,9 +10,9 @@ public class Pose3D {
     double r_z;
 
     public static class Position {
-        double x;
-        double y;
-        double z;
+        public double x;
+        public double y;
+        public double z;
 
         public Position(double x, double y, double z) {
             this.x = x;
@@ -34,9 +34,9 @@ public class Pose3D {
     }
 
     public static class Rotation {
-        double r_x;
-        double r_y;
-        double r_z;
+        public double r_x;
+        public double r_y;
+        public double r_z;
 
         public Rotation(double r_x, double r_y, double r_z) {
             this.r_x = r_x;
@@ -132,6 +132,19 @@ public class Pose3D {
 
     public void transform(Rotation r) {
         rotate(r.r_x, r.r_y, r.r_z);
+    }
+
+    @Override
+    public String toString() {
+        // Round to 2 decimal places
+        return "Pose3D{" +
+                "x=" + Math.round(x * 100.0) / 100.0 +
+                ", y=" + Math.round(y * 100.0) / 100.0 +
+                ", z=" + Math.round(z * 100.0) / 100.0 +
+                ", r_x=" + Math.round(r_x * 100.0) / 100.0 +
+                ", r_y=" + Math.round(r_y * 100.0) / 100.0 +
+                ", r_z=" + Math.round(r_z * 100.0) / 100.0 +
+                '}';
     }
 
 }

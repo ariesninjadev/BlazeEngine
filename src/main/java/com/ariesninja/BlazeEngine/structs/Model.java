@@ -1,6 +1,5 @@
-package com.ariesninja.BlazeEngine;
+package com.ariesninja.BlazeEngine.structs;
 
-import com.ariesninja.BlazeEngine.utils2d.Line;
 import com.ariesninja.BlazeEngine.utils3d.Coordinate3D;
 import com.ariesninja.BlazeEngine.utils3d.Line3D;
 import com.ariesninja.BlazeEngine.utils3d.Surface3D;
