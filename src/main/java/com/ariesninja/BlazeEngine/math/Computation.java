@@ -1,10 +1,11 @@
-package com.ariesninja.BlazeEngine.utils3d;
+package com.ariesninja.BlazeEngine.math;
 
 import com.ariesninja.BlazeEngine.*;
 import com.ariesninja.BlazeEngine.structs.Light;
 import com.ariesninja.BlazeEngine.structs.Model;
 import com.ariesninja.BlazeEngine.utils2d.Coordinate;
 import com.ariesninja.BlazeEngine.utils2d.Line;
+import com.ariesninja.BlazeEngine.utils3d.*;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -245,16 +246,6 @@ public class Computation {
         centroidY /= vertexCount;
         centroidZ /= vertexCount;
 
-        // Check for shadows
-        boolean inShadow = false;
-        Coordinate3D lightPosition = light.getPosition();
-        for (Instance instance : world.getModels()) {
-            if (instanceIntersectsRay(instance, centroidX, centroidY, centroidZ, lightPosition)) {
-                inShadow = true;
-                break;
-            }
-        }
-
         // Calculate the distance from the light to the centroid
         double distance = Math.sqrt(
                 Math.pow(light.getPosition().x - centroidX, 2) +
@@ -279,69 +270,11 @@ public class Computation {
 
         // Combine the base color with the light's contribution, scaled to balance, with ambient lighting
         double scalingFactor = light.getScalingFactor();
-        double rFinal = Math.max(0, Math.min(255, r * ambientFactor + r * (1 - scalingFactor) + (inShadow ? 0 : rLight * scalingFactor)));
-        double gFinal = Math.max(0, Math.min(255, g * ambientFactor + g * (1 - scalingFactor) + (inShadow ? 0 : gLight * scalingFactor)));
-        double bFinal = Math.max(0, Math.min(255, b * ambientFactor + b * (1 - scalingFactor) + (inShadow ? 0 : bLight * scalingFactor)));
+        double rFinal = Math.max(0, Math.min(255, r * ambientFactor + r * (1 - scalingFactor) + (rLight * scalingFactor)));
+        double gFinal = Math.max(0, Math.min(255, g * ambientFactor + g * (1 - scalingFactor) + (gLight * scalingFactor)));
+        double bFinal = Math.max(0, Math.min(255, b * ambientFactor + b * (1 - scalingFactor) + (bLight * scalingFactor)));
 
         return new Color((int) rFinal, (int) gFinal, (int) bFinal);
-    }
-
-    private static boolean instanceIntersectsRay(Instance instance, double startX, double startY, double startZ, Coordinate3D lightPosition) {
-        // Calculate the direction of the ray
-        double dirX = lightPosition.x - startX;
-        double dirY = lightPosition.y - startY;
-        double dirZ = lightPosition.z - startZ;
-
-        // Get the bounding box of the instance
-        double minX = instance.getBoundingBox().getMinX();
-        double minY = instance.getBoundingBox().getMinY();
-        double minZ = instance.getBoundingBox().getMinZ();
-        double maxX = instance.getBoundingBox().getMaxX();
-        double maxY = instance.getBoundingBox().getMaxY();
-        double maxZ = instance.getBoundingBox().getMaxZ();
-
-        // Check for intersection with the bounding box
-        double tmin = (minX - startX) / dirX;
-        double tmax = (maxX - startX) / dirX;
-        if (tmin > tmax) {
-            double temp = tmin;
-            tmin = tmax;
-            tmax = temp;
-        }
-
-        double tymin = (minY - startY) / dirY;
-        double tymax = (maxY - startY) / dirY;
-        if (tymin > tymax) {
-            double temp = tymin;
-            tymin = tymax;
-            tymax = temp;
-        }
-
-        if ((tmin > tymax) || (tymin > tmax)) {
-            return false;
-        }
-
-        if (tymin > tmin) {
-            tmin = tymin;
-        }
-
-        if (tymax < tmax) {
-            tmax = tymax;
-        }
-
-        double tzmin = (minZ - startZ) / dirZ;
-        double tzmax = (maxZ - startZ) / dirZ;
-        if (tzmin > tzmax) {
-            double temp = tzmin;
-            tzmin = tzmax;
-            tzmax = temp;
-        }
-
-        if ((tmin > tzmax) || (tzmin > tmax)) {
-            return false;
-        }
-
-        return true;
     }
 
 

@@ -3,7 +3,7 @@ package com.ariesninja.BlazeEngine.gui;
 import com.ariesninja.BlazeEngine.Camera;
 import com.ariesninja.BlazeEngine.Client;
 import com.ariesninja.BlazeEngine.structs.Light;
-import com.ariesninja.BlazeEngine.utils3d.Computation;
+import com.ariesninja.BlazeEngine.math.Computation;
 import com.ariesninja.BlazeEngine.utils3d.Coordinate3D;
 import com.ariesninja.BlazeEngine.utils3d.EnhancedPolygon;
 
@@ -65,7 +65,7 @@ public class GraphicalDisplay extends Frame implements KeyListener {
 
         setVisible(true);
 
-        Timer timer = new Timer(16, e -> {
+        Timer timer = new Timer(12, e -> {
             if (!c.isRunning()) return;
             ClientControl.controlCamera(this.c);  // Update camera movement
             repaint();  // Redraw the frame
@@ -204,6 +204,8 @@ public class GraphicalDisplay extends Frame implements KeyListener {
             g.setColor(Color.WHITE);
 
         } else if (DISPLAY_TITLE) {
+
+            g.setFont(new Font("Monospaced", Font.PLAIN, 14));
 
             g.setColor(new Color(241, 124, 124));
             rightAlign(g, "Blaze Engine", 0);

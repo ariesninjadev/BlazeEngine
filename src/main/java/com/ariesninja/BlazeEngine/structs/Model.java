@@ -4,8 +4,6 @@ import com.ariesninja.BlazeEngine.utils3d.Coordinate3D;
 import com.ariesninja.BlazeEngine.utils3d.Line3D;
 import com.ariesninja.BlazeEngine.utils3d.Surface3D;
 
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.RectangularShape;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,31 +22,6 @@ public class Model {
     boolean isWireframe = true; // No filling yet
 
     public List<Surface3D> surfaces = new ArrayList<>();
-
-    public RectangularShape getBoundingBox() {
-        if (vertices == null || vertices.isEmpty()) {
-            return new Rectangle2D.Double();
-        }
-
-        double minX = Double.MAX_VALUE;
-        double minY = Double.MAX_VALUE;
-        double minZ = Double.MAX_VALUE;
-        double maxX = Double.MIN_VALUE;
-        double maxY = Double.MIN_VALUE;
-        double maxZ = Double.MIN_VALUE;
-
-        for (Coordinate3D vertex : vertices) {
-            if (vertex.x < minX) minX = vertex.x;
-            if (vertex.y < minY) minY = vertex.y;
-            if (vertex.z < minZ) minZ = vertex.z;
-            if (vertex.x > maxX) maxX = vertex.x;
-            if (vertex.y > maxY) maxY = vertex.y;
-            if (vertex.z > maxZ) maxZ = vertex.z;
-        }
-
-        // Assuming the bounding box is a 2D projection on the XY plane
-        return new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
-    }
 
     public static class CUBE extends Model {
 

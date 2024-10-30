@@ -3,7 +3,7 @@ package com.ariesninja.BlazeEngine;
 import com.ariesninja.BlazeEngine.structs.Light;
 import com.ariesninja.BlazeEngine.utils2d.Line;
 import com.ariesninja.BlazeEngine.gui.GraphicalDisplay;
-import com.ariesninja.BlazeEngine.utils3d.Computation;
+import com.ariesninja.BlazeEngine.math.Computation;
 import com.ariesninja.BlazeEngine.utils3d.Coordinate3D;
 import com.ariesninja.BlazeEngine.utils3d.EnhancedPolygon;
 import com.ariesninja.BlazeEngine.utils3d.Pose3D;

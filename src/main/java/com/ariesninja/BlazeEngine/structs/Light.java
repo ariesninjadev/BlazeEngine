@@ -1,5 +1,6 @@
 package com.ariesninja.BlazeEngine.structs;
 
+import com.ariesninja.BlazeEngine.math.Attenuation;
 import com.ariesninja.BlazeEngine.utils3d.Coordinate3D;
 
 import java.awt.*;
@@ -20,6 +21,26 @@ public class Light {
         this.position = position;
         this.intensity = intensity;
         this.color = color;
+    }
+
+    public Light(Coordinate3D position, double intensity, Color color, Attenuation attenuation) {
+        this.position = position;
+        this.intensity = intensity;
+        this.color = color;
+        this.constant_attenuation = attenuation.getConstant_attenuation();
+        this.linear_attenuation = attenuation.getLinear_attenuation();
+        this.quadratic_attenuation = attenuation.getQuadratic_attenuation();
+    }
+
+    public Light(Coordinate3D position, double intensity, Color color, Attenuation attenuation, double ambientFactor, double scalingFactor) {
+        this.position = position;
+        this.intensity = intensity;
+        this.color = color;
+        this.constant_attenuation = attenuation.getConstant_attenuation();
+        this.linear_attenuation = attenuation.getLinear_attenuation();
+        this.quadratic_attenuation = attenuation.getQuadratic_attenuation();
+        this.ambientFactor = ambientFactor;
+        this.scalingFactor = scalingFactor;
     }
 
     public Coordinate3D getPosition() {

@@ -1,4 +1,5 @@
 import com.ariesninja.BlazeEngine.*;
+import com.ariesninja.BlazeEngine.math.Attenuation;
 import com.ariesninja.BlazeEngine.structs.Light;
 import com.ariesninja.BlazeEngine.structs.Model;
 import com.ariesninja.BlazeEngine.utils3d.Coordinate3D;
@@ -35,13 +36,13 @@ public class Main {
 
         //w.place(new Model.CUBE(1), new Pose3D(0, 0, 0), Color.WHITE);
 
-        Light light = new Light(new Coordinate3D(9, 12, 27), 7, new Color(54, 126, 221));
-        Instance lightCube = w.place(new Model.CUBE(0.25), new Pose3D(9, 12, 27), new Color(54, 126, 221));
-//
-//        Light light2 = new Light(new Coordinate3D(6, 0, 0), 4, Color.WHITE);
-//        Instance lightCube2 = w.place(new Model.CUBE(0.25), new Pose3D(6, 0, 0), Color.WHITE);
-//
-//        w.addLight(light2);
+        Light light = new Light(new Coordinate3D(16, 12, 28), 2, new Color(54, 126, 221));
+        Instance lightCube = w.place(new Model.CUBE(0.25), new Pose3D(16, 12, 28), new Color(54, 126, 221));
+
+        Light light2 = new Light(new Coordinate3D(1, 4, 2), 4, Color.WHITE, new Attenuation(1, 0.02, 0.4));
+        Instance lightCube2 = w.place(new Model.CUBE(0.25), new Pose3D(1, 4, 2), Color.WHITE);
+
+        w.addLight(light2);
         w.addLight(light);
 
         //w.place(new Model.CUBE(1), new Pose3D(8, 0, 0), Color.RED);
@@ -66,30 +67,30 @@ public class Main {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-//                // Smoothly cycle colors
-//                Color currentColor = light.getColor();
-//                Color newColor = cycleColor(currentColor, 0.001); // Adjust speed as needed
-//                light.setColor(newColor);
-//                lightCube.setColor(newColor);
+                // Smoothly cycle colors
+                Color currentColor = light.getColor();
+                Color newColor = cycleColor(currentColor, 0.001); // Adjust speed as needed
+                light.setColor(newColor);
+                lightCube.setColor(newColor);
 
                 // Move light with smooth translation
-                double maxSpeed = 0.1;
-                double minSpeed = 0.01;
+                double maxSpeed = 0.2;
+                double minSpeed = 0.05;
                 double range = 16.0;
 
                 if (right) {
                     double distanceToEnd = range - light.getPosition().x;
                     double speed = minSpeed + (maxSpeed - minSpeed) * (distanceToEnd / range);
-                    light.move(speed, 0, 0);
-                    lightCube.move(speed, 0, 0);
+                    light.move(speed, 0, speed/1.5);
+                    lightCube.move(speed, 0, speed/1.5);
                     if (light.getPosition().x >= range) {
                         right = false;
                     }
                 } else {
                     double distanceToStart = light.getPosition().x;
                     double speed = minSpeed + (maxSpeed - minSpeed) * (distanceToStart / range);
-                    light.move(-speed, 0, 0);
-                    lightCube.move(-speed, 0, 0);
+                    light.move(-speed, 0, -speed/1.5);
+                    lightCube.move(-speed, 0, -speed/1.5);
                     if (light.getPosition().x <= 0) {
                         right = true;
                     }
