@@ -14,7 +14,7 @@ public class Light {
     double linear_attenuation = 0.09;
     double quadratic_attenuation = 0.03;
     double ambientFactor = -0.5;
-    double scalingFactor = 0.6;
+    double scalingFactor = 0.8;
 
     public Light(Coordinate3D position, double intensity, Color color) {
         this.position = position;

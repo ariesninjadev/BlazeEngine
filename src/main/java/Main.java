@@ -18,10 +18,10 @@ public class Main {
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int width = (int) (screenSize.width * 2 / 3.0);
-        int height = (int) (screenSize.height * 2 / 3.0);
+        int height = (int) (screenSize.height * 2 / 3.0); //1080 695
 
         // Create the Client with the calculated dimensions
-        Client client = new Client(width, height);
+        Client client = new Client(Math.max(width, 1080), Math.max(height, 660));
 
         World w = new World();
 
@@ -36,12 +36,13 @@ public class Main {
         //w.place(new Model.CUBE(1), new Pose3D(0, 0, 0), Color.WHITE);
 
         Light light = new Light(new Coordinate3D(9, 12, 27), 7, new Color(54, 126, 221));
-        w.addLight(light);
         Instance lightCube = w.place(new Model.CUBE(0.25), new Pose3D(9, 12, 27), new Color(54, 126, 221));
-
+//
 //        Light light2 = new Light(new Coordinate3D(6, 0, 0), 4, Color.WHITE);
-//        w.addLight(light2);
 //        Instance lightCube2 = w.place(new Model.CUBE(0.25), new Pose3D(6, 0, 0), Color.WHITE);
+//
+//        w.addLight(light2);
+        w.addLight(light);
 
         //w.place(new Model.CUBE(1), new Pose3D(8, 0, 0), Color.RED);
 
@@ -49,7 +50,7 @@ public class Main {
 
         for (int i = 1; i < 16; i++) {
             for (int j = 4; j < 12; j++) {
-                w.place(new Model.CUBE(1), new Pose3D(i, j, j+i), Color.WHITE);
+                w.place(new Model.CUBE(1), new Pose3D(i, j, j+i), Color.BLACK);
             }
         }
 
@@ -65,11 +66,11 @@ public class Main {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                // Smoothly cycle colors
-                Color currentColor = light.getColor();
-                Color newColor = cycleColor(currentColor, 0.001); // Adjust speed as needed
-                light.setColor(newColor);
-                lightCube.setColor(newColor);
+//                // Smoothly cycle colors
+//                Color currentColor = light.getColor();
+//                Color newColor = cycleColor(currentColor, 0.001); // Adjust speed as needed
+//                light.setColor(newColor);
+//                lightCube.setColor(newColor);
 
                 // Move light with smooth translation
                 double maxSpeed = 0.1;

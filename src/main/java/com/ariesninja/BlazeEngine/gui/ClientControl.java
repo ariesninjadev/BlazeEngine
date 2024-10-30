@@ -44,8 +44,16 @@ public class ClientControl {
         if (moveDown) c.getPose().move(-upX * movementSpeed, -upY * movementSpeed, -upZ * movementSpeed);
 
         // Update rotation based on key states
-        if (rotateUp) c.getPose().rotate(rotationSpeed, 0, 0);
-        if (rotateDown) c.getPose().rotate(-rotationSpeed, 0, 0);
+        if (rotateUp && c.getPose().getRotation().getRX() < 90) {
+            c.getPose().rotate(rotationSpeed, 0, 0);
+        } else if (rotateUp) {
+            c.getPose().setRotation(90, c.getPose().getRotation().getRY(), c.getPose().getRotation().getRZ());
+        }
+        if (rotateDown && c.getPose().getRotation().getRX() > -90) {
+            c.getPose().rotate(-rotationSpeed, 0, 0);
+        } else if (rotateDown) {
+            c.getPose().setRotation(-90, c.getPose().getRotation().getRY(), c.getPose().getRotation().getRZ());
+        }
         if (rotateLeft) c.getPose().rotate(0, rotationSpeed, 0);
         if (rotateRight) c.getPose().rotate(0, -rotationSpeed, 0);
     }

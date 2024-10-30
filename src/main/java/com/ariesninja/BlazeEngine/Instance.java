@@ -4,6 +4,7 @@ import com.ariesninja.BlazeEngine.structs.Model;
 import com.ariesninja.BlazeEngine.utils3d.Pose3D;
 
 import java.awt.*;
+import java.awt.geom.RectangularShape;
 
 public class Instance {
 
@@ -51,4 +52,7 @@ public class Instance {
         this.pose.move(x, y, z);
     }
 
+    public RectangularShape getBoundingBox() {
+        return model.getBoundingBox();
+    }
 }

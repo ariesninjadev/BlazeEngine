@@ -51,6 +51,9 @@ public class Client {
 
     public List<EnhancedPolygon> generateSurfaces() {
         ArrayList<EnhancedPolygon> polygons = new ArrayList<>();
+        if (world == null) {
+            return polygons;
+        }
         for (Instance i : world.getModels()) { // for each cube
             ArrayList<EnhancedPolygon> instancePolygons = Computation.filledSurfaces(i, camera); // generate list of polygons
             for (EnhancedPolygon polygon : instancePolygons) { // for each polygon

@@ -23,6 +23,7 @@ public class GraphicalDisplay extends Frame implements KeyListener {
     private static final String VERSION = "DEV_TEST";
 
     private static final boolean DISPLAY_DEBUG = false;
+    private static final boolean DISPLAY_TITLE = true;
 
     private Image offscreenImage;
     private Graphics offscreenGraphics;
@@ -32,6 +33,10 @@ public class GraphicalDisplay extends Frame implements KeyListener {
     private long lastTime = System.currentTimeMillis();
     private int frames = 0;
     private int framerate = 0;
+    private static final int UPDATE_INTERVAL = 100; // Update every 100 milliseconds
+    private static final int AVERAGE_INTERVAL = 1000; // Average over 1 second
+    private long[] frameTimes = new long[AVERAGE_INTERVAL / UPDATE_INTERVAL];
+    private int frameTimeIndex = 0;
 
     public GraphicalDisplay(Client c, String t, int w, int h, Color col) {
         this.c = c;
@@ -75,6 +80,7 @@ public class GraphicalDisplay extends Frame implements KeyListener {
 
     @Override
     public void update(Graphics g) {
+
         if (offscreenImage == null) {
             offscreenImage = createImage(getWidth(), getHeight());
             offscreenGraphics = offscreenImage.getGraphics();
@@ -93,33 +99,57 @@ public class GraphicalDisplay extends Frame implements KeyListener {
 
     @Override
     public void paint(Graphics g) {
+
+        // Framerate Calculation
         frameCount++;
         frames++;
         long currentTime = System.currentTimeMillis();
-        if (currentTime - lastTime >= 1000) {
-            framerate = frames;
+        if (currentTime - lastTime >= UPDATE_INTERVAL) {
+            frameTimes[frameTimeIndex] = frames * (1000 / UPDATE_INTERVAL);
+            frameTimeIndex = (frameTimeIndex + 1) % frameTimes.length;
             frames = 0;
             lastTime = currentTime;
-        }
 
+            // Calculate average FPS
+            int totalFrames = 0;
+            for (long frameTime : frameTimes) {
+                totalFrames += frameTime;
+            }
+            framerate = totalFrames / frameTimes.length;
+        }
         g.setFont(new Font("Monospaced", Font.PLAIN, 9));
+
+        //////////////////////////////////
 
         // Draw faces
         List<EnhancedPolygon> faces = c.generateSurfaces();
-        for (EnhancedPolygon entry : faces) {
-            // Calculate final color based on lighting
+        for (EnhancedPolygon polygon : faces) {
+            Color baseColor = polygon.getColor();
+            int r = 0, gr = 0, b = 0;
+
             for (Light light : c.getGlobalLights()) {
-                entry.setColor(Computation.calculateLighting(entry, light));
+                Color lightColor = Computation.calculateLighting(polygon, light, c.getWorld());
+                r += lightColor.getRed();
+                gr += lightColor.getGreen();
+                b += lightColor.getBlue();
             }
-            g.setColor(entry.getColor());
-            g.fillPolygon(entry.getPolygon());
+
+            // Clamp the color values to be within the valid range
+            r = Math.min(255, r);
+            gr = Math.min(255, gr);
+            b = Math.min(255, b);
+
+            polygon.setColor(new Color(r, gr, b));
+            g.setColor(polygon.getColor());
+            g.fillPolygon(polygon.getPolygon());
         }
+        //////////////////////////////////
 
         // Update rendering order text every 30 frames
         if (frameCount % 30 == 0) {
             StringBuilder sb = new StringBuilder("Rendering Order:\n");
-            for (EnhancedPolygon entry : faces) {
-                sb.append(entry.getColor().toString()).append(" - ").append(entry.getDepth()).append("\n");
+            for (EnhancedPolygon polygon : faces) {
+                sb.append(polygon.getColor().toString()).append(" - ").append(polygon.getDepth()).append("\n");
             }
             renderingOrderText = sb.toString();
         }
@@ -151,21 +181,42 @@ public class GraphicalDisplay extends Frame implements KeyListener {
             rightAlign(g, "Version " + VERSION, 2);
             rightAlign(g, "Commit e9687ba7ff0", 3);
             rightAlign(g, "2024 Edition", 4);
+            rightAlign(g, "Window: " + getWidth() + "x" + getHeight(), 5);
 
-            rightAlign(g, "Camera: " + c.getCamera().getPose().toString(), 6);
-            rightAlign(g, "Nearest object: " + c.getNearestObjectPosition(), 7);
+            rightAlign(g, "CPU Name: " + System.getenv("PROCESSOR_IDENTIFIER"), 7);
+            rightAlign(g, "CPU Cores: " + Runtime.getRuntime().availableProcessors(), 8);
+            rightAlign(g, "GPU Name: " + System.getenv("DISPLAY"), 9);
+            rightAlign(g, "GPU Vendor: " + System.getenv("VENDOR"), 10);
 
-            rightAlign(g, "Global Lights: " + c.getGlobalLights().size(), 9);
-            rightAlign(g, "Models: " + c.getWorld().getModels().size(), 10);
-            rightAlign(g, "Instance Polygons: " + faces.size(), 11);
+            rightAlign(g, "Camera: " + c.getCamera().getPose().toString(), 12);
+            rightAlign(g, "Nearest object: " + c.getNearestObjectPosition(), 13);
+
+            rightAlign(g, "Global Lights: " + c.getGlobalLights().size(), 15);
+            rightAlign(g, "Models: " + c.getWorld().getModels().size(), 16);
+            rightAlign(g, "Instance Polygons: " + faces.size(), 17);
 
             g.setFont(new Font("Monospaced", Font.BOLD, 14));
             g.setColor(Color.GREEN);
 
-            rightAlign(g, "Current Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024 / 1024 + "KB", 13);
+            rightAlign(g, "Current Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024 / 1024 + "KB", 19);
 
             g.setFont(new Font("Monospaced", Font.PLAIN, 14));
             g.setColor(Color.WHITE);
+
+        } else if (DISPLAY_TITLE) {
+
+            g.setColor(new Color(241, 124, 124));
+            rightAlign(g, "Blaze Engine", 0);
+            g.setColor(Color.WHITE);
+            rightAlign(g, "Created by Aries Powvalla", 1);
+            rightAlign(g, "Version " + VERSION, 2);
+
+            rightAlign(g, "Window: " + getWidth() + "x" + getHeight(), 4);
+            rightAlign(g, "FPS: " + framerate, 5);
+            g.setColor(Color.GREEN);
+            rightAlign(g, "Current Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024 / 1024 + "KB", 6);
+            g.setColor(Color.WHITE);
+            rightAlign(g, "Camera Pose: " + c.getCamera().getPose().toString(), 8);
 
         }
 

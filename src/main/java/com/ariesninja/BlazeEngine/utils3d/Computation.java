@@ -228,22 +228,32 @@ public class Computation {
         return distance;
     }
 
-    public static Color calculateLighting(EnhancedPolygon key, Light light) {
+    public static Color calculateLighting(EnhancedPolygon polygon, Light light, World world) {
         // Calculate the centroid of the polygon
         double centroidX = 0;
         double centroidY = 0;
         double centroidZ = 0;
-        int vertexCount = key.getPolygon().npoints;
+        int vertexCount = polygon.getPolygon().npoints;
 
         for (int i = 0; i < vertexCount; i++) {
-            centroidX += key.getPositionIn3dSpace().x;
-            centroidY += key.getPositionIn3dSpace().y;
-            centroidZ += key.getPositionIn3dSpace().z;
+            centroidX += polygon.getPositionIn3dSpace().x;
+            centroidY += polygon.getPositionIn3dSpace().y;
+            centroidZ += polygon.getPositionIn3dSpace().z;
         }
 
         centroidX /= vertexCount;
         centroidY /= vertexCount;
         centroidZ /= vertexCount;
+
+        // Check for shadows
+        boolean inShadow = false;
+        Coordinate3D lightPosition = light.getPosition();
+        for (Instance instance : world.getModels()) {
+            if (instanceIntersectsRay(instance, centroidX, centroidY, centroidZ, lightPosition)) {
+                inShadow = true;
+                break;
+            }
+        }
 
         // Calculate the distance from the light to the centroid
         double distance = Math.sqrt(
@@ -255,9 +265,9 @@ public class Computation {
         double attenuation = 1 / (1 + light.getConstant_attenuation() + light.getLinear_attenuation() * distance + light.getQuadratic_attenuation() * Math.pow(distance, 2));
 
         // Get the object's base color
-        double r = key.getColor().getRed();
-        double g = key.getColor().getGreen();
-        double b = key.getColor().getBlue();
+        double r = polygon.getColor().getRed();
+        double g = polygon.getColor().getGreen();
+        double b = polygon.getColor().getBlue();
 
         // Ambient lighting factor (controls the base light level when not directly illuminated)
         double ambientFactor = light.getAmbientFactor(); // Adjust as necessary to achieve the desired darkness in shadowed areas
@@ -269,11 +279,69 @@ public class Computation {
 
         // Combine the base color with the light's contribution, scaled to balance, with ambient lighting
         double scalingFactor = light.getScalingFactor();
-        double rFinal = Math.max(0, Math.min(255, r * ambientFactor + r * (1 - scalingFactor) + rLight * scalingFactor));
-        double gFinal = Math.max(0, Math.min(255, g * ambientFactor + g * (1 - scalingFactor) + gLight * scalingFactor));
-        double bFinal = Math.max(0, Math.min(255, b * ambientFactor + b * (1 - scalingFactor) + bLight * scalingFactor));
+        double rFinal = Math.max(0, Math.min(255, r * ambientFactor + r * (1 - scalingFactor) + (inShadow ? 0 : rLight * scalingFactor)));
+        double gFinal = Math.max(0, Math.min(255, g * ambientFactor + g * (1 - scalingFactor) + (inShadow ? 0 : gLight * scalingFactor)));
+        double bFinal = Math.max(0, Math.min(255, b * ambientFactor + b * (1 - scalingFactor) + (inShadow ? 0 : bLight * scalingFactor)));
 
         return new Color((int) rFinal, (int) gFinal, (int) bFinal);
+    }
+
+    private static boolean instanceIntersectsRay(Instance instance, double startX, double startY, double startZ, Coordinate3D lightPosition) {
+        // Calculate the direction of the ray
+        double dirX = lightPosition.x - startX;
+        double dirY = lightPosition.y - startY;
+        double dirZ = lightPosition.z - startZ;
+
+        // Get the bounding box of the instance
+        double minX = instance.getBoundingBox().getMinX();
+        double minY = instance.getBoundingBox().getMinY();
+        double minZ = instance.getBoundingBox().getMinZ();
+        double maxX = instance.getBoundingBox().getMaxX();
+        double maxY = instance.getBoundingBox().getMaxY();
+        double maxZ = instance.getBoundingBox().getMaxZ();
+
+        // Check for intersection with the bounding box
+        double tmin = (minX - startX) / dirX;
+        double tmax = (maxX - startX) / dirX;
+        if (tmin > tmax) {
+            double temp = tmin;
+            tmin = tmax;
+            tmax = temp;
+        }
+
+        double tymin = (minY - startY) / dirY;
+        double tymax = (maxY - startY) / dirY;
+        if (tymin > tymax) {
+            double temp = tymin;
+            tymin = tymax;
+            tymax = temp;
+        }
+
+        if ((tmin > tymax) || (tymin > tmax)) {
+            return false;
+        }
+
+        if (tymin > tmin) {
+            tmin = tymin;
+        }
+
+        if (tymax < tmax) {
+            tmax = tymax;
+        }
+
+        double tzmin = (minZ - startZ) / dirZ;
+        double tzmax = (maxZ - startZ) / dirZ;
+        if (tzmin > tzmax) {
+            double temp = tzmin;
+            tzmin = tzmax;
+            tzmax = temp;
+        }
+
+        if ((tmin > tzmax) || (tzmin > tmax)) {
+            return false;
+        }
+
+        return true;
     }
 
 
