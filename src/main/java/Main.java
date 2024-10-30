@@ -29,7 +29,7 @@ public class Main {
 
         //w.place(new Model.CUBE(1), new Pose3D(0, 0, 0), Color.WHITE);
 
-        Light light = new Light(new Coordinate3D(9, 12, 27), 4, new Color(54, 126, 221));
+        Light light = new Light(new Coordinate3D(9, 12, 27), 7, new Color(54, 126, 221));
         w.addLight(light);
         Instance lightCube = w.place(new Model.CUBE(0.25), new Pose3D(9, 12, 27), new Color(54, 126, 221));
 
@@ -58,6 +58,16 @@ public class Main {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+                // Smoothly cycle colors
+                Color currentColor = light.getColor();
+                int red = (currentColor.getRed() + 1) % 256;
+                int green = (currentColor.getGreen() + 1) % 256;
+                int blue = (currentColor.getBlue() + 1) % 256;
+                Color newColor = new Color(red, green, blue);
+                light.setColor(newColor);
+                lightCube.setColor(newColor);
+
+                // Move light
                 if (right) {
                     light.move(0.1, 0, 0);
                     lightCube.move(0.1, 0, 0);

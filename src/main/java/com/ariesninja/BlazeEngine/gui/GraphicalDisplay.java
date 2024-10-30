@@ -22,6 +22,8 @@ public class GraphicalDisplay extends Frame implements KeyListener {
 
     private static final String VERSION = "DEV_TEST";
 
+    private static final boolean DISPLAY_DEBUG = false;
+
     private Image offscreenImage;
     private Graphics offscreenGraphics;
     private Client c;
@@ -122,45 +124,50 @@ public class GraphicalDisplay extends Frame implements KeyListener {
             renderingOrderText = sb.toString();
         }
 
-        // Always display rendering order text
-        g.setColor(Color.WHITE);
-        int yOffset = 30;
-        for (String line : renderingOrderText.split("\n")) {
-            g.drawString(line, 10, yOffset);
-            yOffset += 9;
+        if (DISPLAY_DEBUG) {
+
+
+            // Always display rendering order text
+            g.setColor(Color.WHITE);
+            int yOffset = 30;
+            for (String line : renderingOrderText.split("\n")) {
+                g.drawString(line, 10, yOffset);
+                yOffset += 9;
+            }
+
+            g.setFont(new Font("Monospaced", Font.PLAIN, 14));
+
+            // Right-align framerate in the top right corner
+            String framerateText = "FPS: " + framerate;
+            FontMetrics fm = g.getFontMetrics();
+            int framerateWidth = fm.stringWidth(framerateText);
+            g.drawString(framerateText, getWidth() - framerateWidth - 20, getHeight() - 20);
+
+            // Display ALL DEBUG INFO.
+            g.setColor(new Color(241, 124, 124));
+            rightAlign(g, "Blaze Engine", 0);
+            g.setColor(Color.WHITE);
+            rightAlign(g, "Created by Aries Powvalla", 1);
+            rightAlign(g, "Version " + VERSION, 2);
+            rightAlign(g, "Commit e9687ba7ff0", 3);
+            rightAlign(g, "2024 Edition", 4);
+
+            rightAlign(g, "Camera: " + c.getCamera().getPose().toString(), 6);
+            rightAlign(g, "Nearest object: " + c.getNearestObjectPosition(), 7);
+
+            rightAlign(g, "Global Lights: " + c.getGlobalLights().size(), 9);
+            rightAlign(g, "Models: " + c.getWorld().getModels().size(), 10);
+            rightAlign(g, "Instance Polygons: " + faces.size(), 11);
+
+            g.setFont(new Font("Monospaced", Font.BOLD, 14));
+            g.setColor(Color.GREEN);
+
+            rightAlign(g, "Current Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024 / 1024 + "KB", 13);
+
+            g.setFont(new Font("Monospaced", Font.PLAIN, 14));
+            g.setColor(Color.WHITE);
+
         }
-
-        g.setFont(new Font("Monospaced", Font.PLAIN, 14));
-
-        // Right-align framerate in the top right corner
-        String framerateText = "FPS: " + framerate;
-        FontMetrics fm = g.getFontMetrics();
-        int framerateWidth = fm.stringWidth(framerateText);
-        g.drawString(framerateText, getWidth() - framerateWidth - 20, getHeight() - 20);
-
-        // Display ALL DEBUG INFO.
-        g.setColor(new Color(241, 124, 124));
-        rightAlign(g, "Blaze Engine", 0);
-        g.setColor(Color.WHITE);
-        rightAlign(g, "Created by Aries Powvalla", 1);
-        rightAlign(g, "Version " + VERSION, 2);
-        rightAlign(g, "Commit e9687ba7ff0", 3);
-        rightAlign(g, "2024 Edition", 4);
-
-        rightAlign(g, "Camera: " + c.getCamera().getPose().toString(), 6);
-        rightAlign(g, "Nearest object: " + c.getNearestObjectPosition(), 7);
-
-        rightAlign(g, "Global Lights: " + c.getGlobalLights().size(), 9);
-        rightAlign(g, "Models: " + c.getWorld().getModels().size(), 10);
-        rightAlign(g, "Instance Polygons: " + faces.size(), 11);
-
-        g.setFont(new Font("Monospaced", Font.BOLD, 14));
-        g.setColor(Color.GREEN);
-
-        rightAlign(g, "Current Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024 / 1024 + "KB", 13);
-
-        g.setFont(new Font("Monospaced", Font.PLAIN, 14));
-        g.setColor(Color.WHITE);
 
         // Get camera orientation
         Camera camera = c.getCamera();
