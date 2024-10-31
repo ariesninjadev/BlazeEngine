@@ -13,4 +13,5 @@ If Minecraft used this engine, it would render 11x faster.
 ## Standings
 
 🏆 1st place AISE Diamond Quarterfinals
+
 ❓ Semifinal Results Released November 4th
