@@ -85,7 +85,7 @@ public class Computation {
             centroidY /= vertexCount;
             centroidZ /= vertexCount;
 
-            polygons.add(polygon);
+            //polygons.add(polygon);
             result.add(new EnhancedPolygon(polygon, 0, new Coordinate3D(centroidX, centroidY, centroidZ), vertices3D, i.getColor()));
         }
         return result;

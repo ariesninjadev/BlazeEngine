@@ -42,6 +42,9 @@ public class CanvasScheduler extends Window {
     @Override
     public void paint(java.awt.Graphics g) {
         frameCount++;
+        if (framerateCalculator == null || c.getWorld() == null) {
+            return;
+        }
         framerateCalculator.update();
         int framerate = framerateCalculator.getFramerate();
         g.setFont(new Font("Monospaced", Font.PLAIN, 9));
