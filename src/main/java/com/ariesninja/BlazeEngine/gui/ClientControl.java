@@ -1,6 +1,6 @@
 package com.ariesninja.BlazeEngine.gui;
 
-import com.ariesninja.BlazeEngine.Camera;
+import com.ariesninja.BlazeEngine.structs.Camera;
 import com.ariesninja.BlazeEngine.Client;
 
 import java.awt.event.KeyEvent;

@@ -1,7 +1,5 @@
-package com.ariesninja.BlazeEngine;
+package com.ariesninja.BlazeEngine.structs;
 
-import com.ariesninja.BlazeEngine.structs.Light;
-import com.ariesninja.BlazeEngine.structs.Model;
 import com.ariesninja.BlazeEngine.utils3d.Pose3D;
 
 import java.awt.*;

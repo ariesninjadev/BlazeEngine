@@ -1,8 +1,6 @@
 package com.ariesninja.BlazeEngine.math;
 
-import com.ariesninja.BlazeEngine.*;
-import com.ariesninja.BlazeEngine.structs.Light;
-import com.ariesninja.BlazeEngine.structs.Model;
+import com.ariesninja.BlazeEngine.structs.*;
 import com.ariesninja.BlazeEngine.utils2d.Coordinate;
 import com.ariesninja.BlazeEngine.utils2d.Line;
 import com.ariesninja.BlazeEngine.utils3d.*;

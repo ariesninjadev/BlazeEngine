@@ -1,7 +1,9 @@
 import com.ariesninja.BlazeEngine.*;
 import com.ariesninja.BlazeEngine.math.Attenuation;
+import com.ariesninja.BlazeEngine.structs.Instance;
 import com.ariesninja.BlazeEngine.structs.Light;
 import com.ariesninja.BlazeEngine.structs.Model;
+import com.ariesninja.BlazeEngine.structs.World;
 import com.ariesninja.BlazeEngine.utils3d.Coordinate3D;
 import com.ariesninja.BlazeEngine.utils3d.Pose3D;
 
@@ -17,6 +19,7 @@ public class Main {
 
     public static void main(String[] args) {
 
+        // Calculate the desired dimensions of the window
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int width = (int) (screenSize.width * 2 / 3.0);
         int height = (int) (screenSize.height * 2 / 3.0); //1080 695
@@ -24,41 +27,36 @@ public class Main {
         // Create the Client with the calculated dimensions
         Client client = new Client(Math.max(width, 1080), Math.max(height, 660));
 
+        // Create a new World
         World w = new World();
 
+        // Load the World into the Client
         client.load(w);
 
-        client.getCamera().setPose(new Pose3D(0, 0, -5));
+        // Set the camera's position and field of view
+        client.getCamera().setPose(new Pose3D(6, 10, -5, -10, 0, 0));
         client.getCamera().setFov(60);
 
-        // Ground
-        //w.place(new Model.RECTANGULAR_PRISM(40, 2, 40), new Pose3D(-20, -10, -20), new Color(128, 128, 128));
-
-        //w.place(new Model.CUBE(1), new Pose3D(0, 0, 0), Color.WHITE);
-
+        // Create a light and a cube to represent it
         Light light = new Light(new Coordinate3D(16, 12, 28), 2, new Color(54, 126, 221));
         Instance lightCube = w.place(new Model.CUBE(0.25), new Pose3D(16, 12, 28), new Color(54, 126, 221));
 
+        // Create a second light and a cube to represent it
         Light light2 = new Light(new Coordinate3D(1, 4, 2), 4, Color.WHITE, new Attenuation(1, 0.02, 0.4));
         Instance lightCube2 = w.place(new Model.CUBE(0.25), new Pose3D(1, 4, 2), Color.WHITE);
 
+        // Add the lights to the World
         w.addLight(light2);
         w.addLight(light);
 
-        //w.place(new Model.CUBE(1), new Pose3D(8, 0, 0), Color.RED);
-
-       // w.place(new Model.CUBE(1), new Pose3D(0, 8, 0), Color.GREEN);
-
+        // Create a grid of black cubes
         for (int i = 1; i < 16; i++) {
             for (int j = 4; j < 12; j++) {
                 w.place(new Model.CUBE(1), new Pose3D(i, j, j+i), Color.BLACK);
             }
         }
 
-        client.getCamera().setPose(new Pose3D(6, 10, -5, -10, 0, 0));
-
-
-
+        // Start a new thread to animate one of the lights
         new Thread(() -> {
             boolean right = true;
             while (true) {
@@ -69,7 +67,7 @@ public class Main {
                 }
                 // Smoothly cycle colors
                 Color currentColor = light.getColor();
-                Color newColor = cycleColor(currentColor, 0.001); // Adjust speed as needed
+                Color newColor = cycleColor(currentColor, 0.001);
                 light.setColor(newColor);
                 lightCube.setColor(newColor);
 

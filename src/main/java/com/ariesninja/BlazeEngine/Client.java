@@ -1,8 +1,10 @@
 package com.ariesninja.BlazeEngine;
 
+import com.ariesninja.BlazeEngine.structs.Camera;
+import com.ariesninja.BlazeEngine.structs.Instance;
 import com.ariesninja.BlazeEngine.structs.Light;
+import com.ariesninja.BlazeEngine.structs.World;
 import com.ariesninja.BlazeEngine.utils2d.Line;
-import com.ariesninja.BlazeEngine.gui.GraphicalDisplay;
 import com.ariesninja.BlazeEngine.math.Computation;
 import com.ariesninja.BlazeEngine.utils3d.Coordinate3D;
 import com.ariesninja.BlazeEngine.utils3d.EnhancedPolygon;
@@ -20,7 +22,7 @@ public class Client {
     int width;
     int height;
 
-    private GraphicalDisplay w;
+    private CanvasScheduler w;
 
     private World world;
     private Camera camera;
@@ -28,7 +30,7 @@ public class Client {
     private boolean isRunning;
 
     public Client(int width, int height) {
-        w = new GraphicalDisplay(this, "Graphical", width, height, Color.BLACK);
+        w = new CanvasScheduler(this, "Graphical", width, height, Color.BLACK);
         this.width = width;
         this.height = height;
     }
@@ -101,7 +103,7 @@ public class Client {
         return isRunning;
     }
 
-    public GraphicalDisplay getDisplay() {
+    public CanvasScheduler getDisplay() {
         return w;
     }
 
