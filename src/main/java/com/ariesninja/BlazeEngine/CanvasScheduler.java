@@ -4,10 +4,12 @@ package com.ariesninja.BlazeEngine;
 import com.ariesninja.BlazeEngine.gui.Crosshair;
 import com.ariesninja.BlazeEngine.gui.Framerate;
 import com.ariesninja.BlazeEngine.gui.Window;
+import com.ariesninja.BlazeEngine.math.Computation;
 import com.ariesninja.BlazeEngine.math.Lighting;
 import com.ariesninja.BlazeEngine.utils3d.EnhancedPolygon;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CanvasScheduler extends Window {
@@ -50,7 +52,13 @@ public class CanvasScheduler extends Window {
         g.setFont(new Font("Monospaced", Font.PLAIN, 9));
 
         // Draw faces
-        List<EnhancedPolygon> faces = c.generateSurfaces();
+        List<EnhancedPolygon> allFaces = c.generateSurfaces();
+        List<EnhancedPolygon> faces = new ArrayList<>();
+        for (EnhancedPolygon polygon : allFaces) {
+            if (Computation.isPolygonInFieldOfView(polygon, c.getCamera())) {
+                faces.add(polygon);
+            }
+        }
         lightingCalculator.applyLighting(faces, c.getGlobalLights(), c.getWorld());
         for (EnhancedPolygon polygon : faces) {
             g.setColor(polygon.getColor());

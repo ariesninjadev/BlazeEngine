@@ -35,7 +35,7 @@ public class Main {
 
         // Set the camera's position and field of view
         client.getCamera().setPose(new Pose3D(6, 10, -5, -10, 0, 0));
-        client.getCamera().setFov(60);
+        client.getCamera().setFov(90);
 
 //        // Create a light and a cube to represent it
 //        Light light = new Light(new Coordinate3D(16, 12, 28), 2, new Color(54, 126, 221));

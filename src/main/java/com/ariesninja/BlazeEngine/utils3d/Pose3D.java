@@ -111,9 +111,9 @@ public class Pose3D {
     }
 
     public void rotate(double dr_x, double dr_y, double dr_z) {
-        r_x += dr_x;
-        r_y += dr_y;
-        r_z += dr_z;
+        r_x = clamp(r_x + dr_x);
+        r_y = clamp(r_y + dr_y);
+        r_z = clamp(r_z + dr_z);
     }
 
     public void transform(double dx, double dy, double dz, double dr_x, double dr_y, double dr_z) {
@@ -145,6 +145,11 @@ public class Pose3D {
                 ", r_y=" + Math.round(r_y * 100.0) / 100.0 +
                 ", r_z=" + Math.round(r_z * 100.0) / 100.0 +
                 '}';
+    }
+
+    private double clamp(double rotation) {
+        rotation = ((rotation + 180) % 360 + 360) % 360 - 180;
+        return rotation;
     }
 
 }

@@ -192,18 +192,6 @@ public class Computation {
         return depths;
     }
 
-    public static Line calculateLine(Line3D line, Camera c, int screenWidth, int screenHeight) {
-        Pose3D pose = c.getPose();
-        double px = pose.getPosition().getX();
-        double py = pose.getPosition().getY();
-        double pz = pose.getPosition().getZ();
-
-        Coordinate3D adjustedStart = new Coordinate3D(line.start.x + px, line.start.y + py, line.start.z + pz);
-        Coordinate3D adjustedEnd = new Coordinate3D(line.end.x + px, line.end.y + py, line.end.z + pz);
-
-        return new Line(poly3Dto2D(adjustedStart, c, screenWidth, screenHeight), poly3Dto2D(adjustedEnd, c, screenWidth, screenHeight));
-    }
-
     public static double calculateVertexDepth(Instance instance, Camera camera, double x, double y, double z) {
         Pose3D pose = instance.getPose();
         double px = pose.getPosition().getX();
@@ -293,6 +281,11 @@ public class Computation {
         }
 
         return nearestPose;
+    }
+
+    public static boolean isPolygonInFieldOfView(EnhancedPolygon polygon, Camera camera) {
+        // To Implement
+        return true;
     }
 
 
