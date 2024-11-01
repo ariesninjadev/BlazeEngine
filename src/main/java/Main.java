@@ -25,7 +25,7 @@ public class Main {
         int height = (int) (screenSize.height * 2 / 3.0); //1080 695
 
         // Create the Client with the calculated dimensions
-        Client client = new Client(Math.max(width, 1080), Math.max(height, 660));
+        Client client = new Client(Math.max(width, 1080), Math.max(height, 450));
 
         // Create a new World
         World w = new World();

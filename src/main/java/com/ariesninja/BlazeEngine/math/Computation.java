@@ -284,7 +284,7 @@ public class Computation {
     }
 
     private static boolean isPointInFieldOfView(Coordinate3D point, Camera camera) {
-        double horizFOV = camera.getFov();
+        double horizFOV = camera.getFov()*1.5;
         double aspectRatio = (double) camera.getScreenWidth() / (double) camera.getScreenHeight();
         double vertFOV = 2 * Math.atan(Math.tan(Math.toRadians(horizFOV) / 2) / aspectRatio);
 
@@ -306,10 +306,12 @@ public class Computation {
         // Horizontal check
         double horizontalAngle = Math.atan2(dz, dx);
         double horizontalAngleDiff = Math.abs(cameraRY - horizontalAngle);
-        if (horizontalAngleDiff > Math.PI) {
-            horizontalAngleDiff = 2 * Math.PI - horizontalAngleDiff;
+        //System.out.println("Horizontal angle diff: " + (horizontalAngleDiff));
+        //System.out.println("FOV: " + horizFOV);
+        if (horizontalAngleDiff > 180) {
+            horizontalAngleDiff = 360 - horizontalAngleDiff;
         }
-        if (horizontalAngleDiff > Math.toRadians(horizFOV) / 2) {
+        if (horizontalAngleDiff > horizFOV) {
             return false;
         }
 
@@ -321,7 +323,7 @@ public class Computation {
             verticalAngleDiff = 2 * Math.PI - verticalAngleDiff;
         }
         if (verticalAngleDiff > Math.toRadians(vertFOV) / 2) {
-            return false;
+            //return false;
         }
 
         return true;
@@ -333,7 +335,8 @@ public class Computation {
                 return true;
             }
         }
-        return true;
+        System.out.println("A polygon is not in the field of view: " + polygon);
+        return false;
     }
 
 
