@@ -283,8 +283,56 @@ public class Computation {
         return nearestPose;
     }
 
+    private static boolean isPointInFieldOfView(Coordinate3D point, Camera camera) {
+        double horizFOV = camera.getFov();
+        double aspectRatio = (double) camera.getScreenWidth() / (double) camera.getScreenHeight();
+        double vertFOV = 2 * Math.atan(Math.tan(Math.toRadians(horizFOV) / 2) / aspectRatio);
+
+        double cameraRX = camera.getPose().getRotation().getRX();
+        double cameraRY = camera.getPose().getRotation().getRY();
+
+        double cameraX = camera.getPose().getPosition().getX();
+        double cameraY = camera.getPose().getPosition().getY();
+        double cameraZ = camera.getPose().getPosition().getZ();
+
+        double pointX = point.x;
+        double pointY = point.y;
+        double pointZ = point.z;
+
+        double dx = pointX - cameraX;
+        double dy = pointY - cameraY;
+        double dz = pointZ - cameraZ;
+
+        // Horizontal check
+        double horizontalAngle = Math.atan2(dz, dx);
+        double horizontalAngleDiff = Math.abs(cameraRY - horizontalAngle);
+        if (horizontalAngleDiff > Math.PI) {
+            horizontalAngleDiff = 2 * Math.PI - horizontalAngleDiff;
+        }
+        if (horizontalAngleDiff > Math.toRadians(horizFOV) / 2) {
+            return false;
+        }
+
+        // Vertical check
+        double distance = Math.sqrt(dx * dx + dz * dz);
+        double verticalAngle = Math.atan2(dy, distance);
+        double verticalAngleDiff = Math.abs(cameraRX - verticalAngle);
+        if (verticalAngleDiff > Math.PI) {
+            verticalAngleDiff = 2 * Math.PI - verticalAngleDiff;
+        }
+        if (verticalAngleDiff > Math.toRadians(vertFOV) / 2) {
+            return false;
+        }
+
+        return true;
+    }
+
     public static boolean isPolygonInFieldOfView(EnhancedPolygon polygon, Camera camera) {
-        // To Implement
+        for (int i = 0; i < polygon.getVertices().size(); i++) {
+            if (isPointInFieldOfView(polygon.getVertices().get(i), camera)) {
+                return true;
+            }
+        }
         return true;
     }
 
