@@ -1,6 +1,7 @@
 // src/main/java/com/ariesninja/BlazeEngine/utils/LightingCalculator.java
 package com.ariesninja.BlazeEngine.math;
 
+import com.ariesninja.BlazeEngine.Client;
 import com.ariesninja.BlazeEngine.structs.Light;
 import com.ariesninja.BlazeEngine.utils3d.EnhancedPolygon;
 import com.ariesninja.BlazeEngine.structs.World;
@@ -9,12 +10,12 @@ import java.awt.*;
 import java.util.List;
 
 public class Lighting {
-    public void applyLighting(List<EnhancedPolygon> polygons, List<Light> lights, World world) {
+    public void applyLighting(List<EnhancedPolygon> polygons, List<Light> lights, Client client) {
         for (EnhancedPolygon polygon : polygons) {
             int r = 0, g = 0, b = 0;
 
             for (Light light : lights) {
-                Color lightColor = Computation.calculateLighting(polygon, light, world);
+                Color lightColor = Computation.calculateLighting(polygon, light, client.getWorld());
                 r += lightColor.getRed();
                 g += lightColor.getGreen();
                 b += lightColor.getBlue();

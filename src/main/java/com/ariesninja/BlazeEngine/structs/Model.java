@@ -1,5 +1,6 @@
 package com.ariesninja.BlazeEngine.structs;
 
+import com.ariesninja.BlazeEngine.utils2d.Coordinate;
 import com.ariesninja.BlazeEngine.utils3d.Coordinate3D;
 import com.ariesninja.BlazeEngine.utils3d.Line3D;
 import com.ariesninja.BlazeEngine.utils3d.Surface3D;
@@ -14,19 +15,41 @@ public class Model {
     double poly_length;
 
     ArrayList<Line3D> lines;
-
     ArrayList<Coordinate3D> vertices;
+    ArrayList<Coordinate> textureCoords; // Add texture coordinates
 
     boolean isDimensional;
-
     boolean isWireframe = true; // No filling yet
 
     public List<Surface3D> surfaces = new ArrayList<>();
+    private Texture texture; // Add texture reference
+
+    public Model() {
+        this.textureCoords = new ArrayList<>();
+    }
+
+    public Model(ArrayList<Coordinate3D> vertices, ArrayList<Coordinate> textureCoords, Texture texture) {
+        this.vertices = vertices;
+        this.textureCoords = textureCoords;
+        this.texture = texture;
+    }
+
+    public List<Coordinate> getTextureCoords() {
+        return textureCoords;
+    }
+
+    public Texture getTexture() {
+        return texture;
+    }
+
+    public void setTexture(Texture texture) {
+        this.texture = texture;
+    }
 
     public static class CUBE extends Model {
 
         public CUBE(double s) {
-
+            super();
             poly_width = s;
             poly_height = s;
             poly_length = s;
@@ -45,6 +68,19 @@ public class Model {
 
             this.vertices = vertices;
 
+            // Define texture coordinates for the CUBE model
+            ArrayList<Coordinate> textureCoords = new ArrayList<>();
+            textureCoords.add(new Coordinate(0, 0));
+            textureCoords.add(new Coordinate(0, 1));
+            textureCoords.add(new Coordinate(1, 0));
+            textureCoords.add(new Coordinate(1, 1));
+            textureCoords.add(new Coordinate(0, 0));
+            textureCoords.add(new Coordinate(0, 1));
+            textureCoords.add(new Coordinate(1, 0));
+            textureCoords.add(new Coordinate(1, 1));
+
+            this.textureCoords = textureCoords;
+
             ArrayList<Coordinate3D> surface1 = new ArrayList<>();
             surface1.add(vertices.get(0));
             surface1.add(vertices.get(1));
@@ -86,15 +122,13 @@ public class Model {
             surface6.add(vertices.get(1));
             surface6.add(vertices.get(3));
             surfaces.add(new Surface3D(surface6));
-
         }
-
     }
 
     public static class RECTANGULAR_PRISM extends Model {
 
         public RECTANGULAR_PRISM(double w, double h, double l) {
-
+            super();
             poly_width = w;
             poly_height = h;
             poly_length = l;
@@ -113,6 +147,19 @@ public class Model {
 
             this.vertices = vertices;
 
+            // Define texture coordinates for the RECTANGULAR_PRISM model
+            ArrayList<Coordinate> textureCoords = new ArrayList<>();
+            textureCoords.add(new Coordinate(0, 0));
+            textureCoords.add(new Coordinate(0, 1));
+            textureCoords.add(new Coordinate(1, 0));
+            textureCoords.add(new Coordinate(1, 1));
+            textureCoords.add(new Coordinate(0, 0));
+            textureCoords.add(new Coordinate(0, 1));
+            textureCoords.add(new Coordinate(1, 0));
+            textureCoords.add(new Coordinate(1, 1));
+
+            this.textureCoords = textureCoords;
+
             ArrayList<Coordinate3D> surface1 = new ArrayList<>();
             surface1.add(vertices.get(0));
             surface1.add(vertices.get(1));
@@ -154,13 +201,13 @@ public class Model {
             surface6.add(vertices.get(1));
             surface6.add(vertices.get(3));
             surfaces.add(new Surface3D(surface6));
-
         }
     }
 
     public static class POLYGON_BUILDER extends Model {
 
         public POLYGON_BUILDER(ArrayList<Line3D> lines) {
+            super();
             this.lines = lines;
             isDimensional = false;
         }
@@ -202,9 +249,7 @@ public class Model {
                 surface.add(end);
                 surfaces.add(new Surface3D(surface));
             }
-
         }
-
     }
 
     public double getWidth() {
@@ -230,5 +275,4 @@ public class Model {
     public ArrayList<Coordinate3D> getVertices() {
         return vertices;
     }
-
 }

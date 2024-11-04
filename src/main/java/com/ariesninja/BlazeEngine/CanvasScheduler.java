@@ -59,7 +59,7 @@ public class CanvasScheduler extends Window {
                 faces.add(polygon);
             }
         }
-        lightingCalculator.applyLighting(faces, c.getGlobalLights(), c.getWorld());
+        lightingCalculator.applyLighting(faces, c.getGlobalLights(), c);
         for (EnhancedPolygon polygon : faces) {
             g.setColor(polygon.getColor());
             g.fillPolygon(polygon.getPolygon());

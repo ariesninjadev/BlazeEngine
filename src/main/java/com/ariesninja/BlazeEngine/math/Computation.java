@@ -220,12 +220,12 @@ public class Computation {
         double centroidX = 0;
         double centroidY = 0;
         double centroidZ = 0;
-        int vertexCount = polygon.getPolygon().npoints;
+        int vertexCount = polygon.getVertices().size();
 
-        for (int i = 0; i < vertexCount; i++) {
-            centroidX += polygon.getPositionIn3dSpace().x;
-            centroidY += polygon.getPositionIn3dSpace().y;
-            centroidZ += polygon.getPositionIn3dSpace().z;
+        for (Coordinate3D vertex : polygon.getVertices()) {
+            centroidX += vertex.x;
+            centroidY += vertex.y;
+            centroidZ += vertex.z;
         }
 
         centroidX /= vertexCount;
@@ -284,49 +284,32 @@ public class Computation {
     }
 
     private static boolean isPointInFieldOfView(Coordinate3D point, Camera camera) {
-        double horizFOV = camera.getFov()*1.5;
-        double aspectRatio = (double) camera.getScreenWidth() / (double) camera.getScreenHeight();
-        double vertFOV = 2 * Math.atan(Math.tan(Math.toRadians(horizFOV) / 2) / aspectRatio);
-
-        double cameraRX = camera.getPose().getRotation().getRX();
-        double cameraRY = camera.getPose().getRotation().getRY();
-
-        double cameraX = camera.getPose().getPosition().getX();
-        double cameraY = camera.getPose().getPosition().getY();
-        double cameraZ = camera.getPose().getPosition().getZ();
+        Pose3D cameraPose = camera.getPose();
+        double cameraX = cameraPose.getPosition().getX();
+        double cameraY = cameraPose.getPosition().getY();
+        double cameraZ = cameraPose.getPosition().getZ();
 
         double pointX = point.x;
         double pointY = point.y;
         double pointZ = point.z;
 
+        double yaw = Math.toRadians(cameraPose.getRotation().getRY());
+        double pitch = Math.toRadians(cameraPose.getRotation().getRX());
+
+        // Calculate the vector from the camera to the point
         double dx = pointX - cameraX;
         double dy = pointY - cameraY;
         double dz = pointZ - cameraZ;
 
-        // Horizontal check
-        double horizontalAngle = Math.atan2(dz, dx);
-        double horizontalAngleDiff = Math.abs(cameraRY - horizontalAngle);
-        //System.out.println("Horizontal angle diff: " + (horizontalAngleDiff));
-        //System.out.println("FOV: " + horizFOV);
-        if (horizontalAngleDiff > 180) {
-            horizontalAngleDiff = 360 - horizontalAngleDiff;
-        }
-        if (horizontalAngleDiff > horizFOV) {
-            return false;
-        }
+        // Apply the camera's rotation to the vector
+        double xRotated = Math.cos(yaw) * dx + Math.sin(yaw) * dz;
+        double zRotated = -Math.sin(yaw) * dx + Math.cos(yaw) * dz;
 
-        // Vertical check
-        double distance = Math.sqrt(dx * dx + dz * dz);
-        double verticalAngle = Math.atan2(dy, distance);
-        double verticalAngleDiff = Math.abs(cameraRX - verticalAngle);
-        if (verticalAngleDiff > Math.PI) {
-            verticalAngleDiff = 2 * Math.PI - verticalAngleDiff;
-        }
-        if (verticalAngleDiff > Math.toRadians(vertFOV) / 2) {
-            //return false;
-        }
+        double yRotated = -Math.sin(pitch) * zRotated + Math.cos(pitch) * dy;
+        double zRotatedFinal = Math.cos(pitch) * zRotated + Math.sin(pitch) * dy;
 
-        return true;
+        // Check if the point is in front of the camera
+        return zRotatedFinal > 0;
     }
 
     public static boolean isPolygonInFieldOfView(EnhancedPolygon polygon, Camera camera) {
@@ -335,7 +318,6 @@ public class Computation {
                 return true;
             }
         }
-        System.out.println("A polygon is not in the field of view: " + polygon);
         return false;
     }
 
