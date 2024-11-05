@@ -24,17 +24,24 @@ public class Shadows {
         }
 
         for (Instance instance : world.getModels()) {
+            System.out.println("Instance: " + instance);
             for (Surface3D surface : instance.getModel().getSurfaces()) {
                 for (Coordinate3D vertex : surface.getVertices()) {
                     double depth = calculateVertexDepth(instance, light, vertex.x, vertex.y, vertex.z);
                     int mapX = (int) ((vertex.x / client.getCamera().getScreenWidth()) * mapSize);
                     int mapY = (int) ((vertex.y / client.getCamera().getScreenHeight()) * mapSize);
+                    System.out.println("Depth: " + depth + " MapX: " + mapX + " MapY: " + mapY);
                     if (depth < depthMap[mapX][mapY]) {
                         depthMap[mapX][mapY] = depth;
+                        depthMap[mapX+1][mapY] = depth;
+                        depthMap[mapX][mapY+1] = depth;
+                        depthMap[mapX+1][mapY+1] = depth;
                     }
                 }
             }
         }
+
+        //System.out.println(depthMap[512][512]);
 
         return depthMap;
     }

@@ -215,6 +215,29 @@ public class Computation {
         return distance;
     }
 
+    public static double calculateLightBasedVertexDepth(Instance instance, Light light, double x, double y, double z) {
+        Pose3D pose = instance.getPose();
+        double px = pose.getPosition().getX();
+        double py = pose.getPosition().getY();
+        double pz = pose.getPosition().getZ();
+
+        double cameraX = light.getPosition().x;
+        double cameraY = light.getPosition().y;
+        double cameraZ = light.getPosition().z;
+
+        // Adjust vertex coordinates by the instance's pose
+        double adjustedX = x;
+        double adjustedY = y;
+        double adjustedZ = z;
+
+        // Calculate the Euclidean distance from the camera to the vertex
+        double distance = Math.sqrt(Math.pow(adjustedX - cameraX, 2) +
+                Math.pow(adjustedY - cameraY, 2) +
+                Math.pow(adjustedZ - cameraZ, 2));
+
+        return distance;
+    }
+
     public static Color calculateLighting(EnhancedPolygon polygon, Light light, World world) {
         // Calculate the centroid of the polygon
         double centroidX = 0;
