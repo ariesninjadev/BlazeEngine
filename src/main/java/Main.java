@@ -1,3 +1,5 @@
+// FINAL pre-release of Blaze Engine 2024 with multimodal support
+
 import com.ariesninja.BlazeEngine.*;
 import com.ariesninja.BlazeEngine.math.Attenuation;
 import com.ariesninja.BlazeEngine.structs.Instance;
