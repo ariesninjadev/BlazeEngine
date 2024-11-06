@@ -9,6 +9,7 @@ public class World {
 
     ArrayList<Instance> models;
     ArrayList<Light> lights;
+    ArrayList<Particle> particles;
 
     public World() {
 
@@ -21,13 +22,13 @@ public class World {
         models.add(i);
     }
 
-    public Instance place(Model m, Pose3D p) {
+    public Instance place(Block m, Pose3D p) {
         Instance i = new Instance(m, p);
         models.add(i);
         return i;
     }
 
-    public Instance place(Model m, Pose3D p, Color c) {
+    public Instance place(Block m, Pose3D p, Color c) {
         Instance i = new Instance(m, p, c);
         models.add(i);
         return i;

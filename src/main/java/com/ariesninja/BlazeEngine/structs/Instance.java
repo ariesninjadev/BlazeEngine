@@ -6,23 +6,23 @@ import java.awt.*;
 
 public class Instance {
 
-    Model model;
+    Block model;
     Pose3D pose;
     Color color;
 
-    public Instance(Model m, Pose3D p) {
+    public Instance(Block m, Pose3D p) {
         this.model = m;
         this.pose = p;
         this.color = Color.WHITE;
     }
 
-    public Instance(Model m, Pose3D p, Color c) {
+    public Instance(Block m, Pose3D p, Color c) {
         this.model = m;
         this.pose = p;
         this.color = c;
     }
 
-    public Model getModel() {
+    public Block getModel() {
         return model;
     }
 
@@ -38,7 +38,7 @@ public class Instance {
         this.pose = p;
     }
 
-    public void setModel(Model m) {
+    public void setModel(Block m) {
         this.model = m;
     }
 

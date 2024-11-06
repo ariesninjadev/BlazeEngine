@@ -4,7 +4,7 @@ import com.ariesninja.BlazeEngine.*;
 import com.ariesninja.BlazeEngine.math.Attenuation;
 import com.ariesninja.BlazeEngine.structs.Instance;
 import com.ariesninja.BlazeEngine.structs.Light;
-import com.ariesninja.BlazeEngine.structs.Model;
+import com.ariesninja.BlazeEngine.structs.Block;
 import com.ariesninja.BlazeEngine.structs.World;
 import com.ariesninja.BlazeEngine.utils3d.Coordinate3D;
 import com.ariesninja.BlazeEngine.utils3d.Pose3D;
@@ -41,11 +41,11 @@ public class Main {
 
         // Create a light and a cube to represent it
         Light light = new Light(new Coordinate3D(16, 12, 28), 12, new Color(54, 126, 221));
-        Instance lightCube = w.place(new Model.CUBE(0.25), new Pose3D(16, 12, 28), new Color(54, 126, 221));
+        Instance lightCube = w.place(new Block(), new Pose3D(16, 12, 28), new Color(54, 126, 221));
 
         // Create a second light and a cube to represent it
         Light light2 = new Light(new Coordinate3D(1, 4, 2), 12, Color.WHITE, new Attenuation(1, 0.02, 0.4));
-        Instance lightCube2 = w.place(new Model.CUBE(0.25), new Pose3D(1, 4, 2), Color.WHITE);
+        Instance lightCube2 = w.place(new Block(), new Pose3D(1, 4, 2), Color.WHITE);
 //
 //        // Add the lights to the World
         w.addLight(light2);
@@ -61,7 +61,7 @@ public class Main {
         // Create a grid of black cubes
         for (int i = 1; i < 16; i++) {
             for (int j = 4; j < 12; j++) {
-                w.place(new Model.CUBE(1), new Pose3D(i, j, j+i), Color.WHITE);
+                w.place(new Block(), new Pose3D(i, j, j+i), Color.WHITE);
             }
         }
 //

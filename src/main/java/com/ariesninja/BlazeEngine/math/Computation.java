@@ -134,17 +134,6 @@ public class Computation {
             lines.add(new Line(poly3Dto2D(vertices[1], c, sw, sh), poly3Dto2D(vertices[5], c, sw, sh)));
             lines.add(new Line(poly3Dto2D(vertices[2], c, sw, sh), poly3Dto2D(vertices[6], c, sw, sh)));
             lines.add(new Line(poly3Dto2D(vertices[3], c, sw, sh), poly3Dto2D(vertices[7], c, sw, sh)));
-        } else {
-            // Polygon Builder shape - arraylist of lines
-            ArrayList<Line3D> shape = ((Model.POLYGON_BUILDER) i.getModel()).getLines();
-            double px = i.getPose().getPosition().getX();
-            double py = i.getPose().getPosition().getY();
-            double pz = i.getPose().getPosition().getZ();
-            for (Line3D l : shape) {
-                Coordinate3D adjustedStart = new Coordinate3D(l.start.x + px, l.start.y + py, l.start.z + pz);
-                Coordinate3D adjustedEnd = new Coordinate3D(l.end.x + px, l.end.y + py, l.end.z + pz);
-                lines.add(new Line(poly3Dto2D(adjustedStart, c, sw, sh), poly3Dto2D(adjustedEnd, c, sw, sh)));
-            }
         }
 
         return lines;
